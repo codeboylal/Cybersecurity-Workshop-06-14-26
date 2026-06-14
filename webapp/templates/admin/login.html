@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Login - InnovateTech</title>
+  <!-- Challenge #45: Found credentials in source -->
+  <!-- DEBUG: Default credentials: admin / admin123 (CHANGE BEFORE PRODUCTION!) -->
+  <style>
+    body { margin:0; font-family:'Inter',sans-serif; background:#0f172a; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .card { background:#1e293b; border:1px solid #334155; border-radius:16px; padding:40px; width:380px; }
+    .logo { text-align:center; font-size:32px; margin-bottom:8px; }
+    h1 { text-align:center; color:white; font-size:22px; margin-bottom:4px; }
+    p { text-align:center; color:#64748b; font-size:13px; margin-bottom:28px; }
+    label { display:block; color:#94a3b8; font-size:13px; font-weight:500; margin-bottom:6px; }
+    input { width:100%; padding:10px 14px; background:#0f172a; border:1px solid #334155; border-radius:8px; color:white; font-size:14px; margin-bottom:16px; box-sizing:border-box; outline:none; }
+    input:focus { border-color:#3b82f6; }
+    button { width:100%; padding:12px; background:#3b82f6; color:white; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; }
+    button:hover { background:#2563eb; }
+    .error { background:#450a0a; border:1px solid #7f1d1d; border-radius:8px; padding:10px; color:#fca5a5; font-size:13px; margin-bottom:16px; }
+    .hint { background:#1a2744; border:1px solid #1e3a8a; border-radius:8px; padding:10px; color:#93c5fd; font-size:12px; margin-top:16px; text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🔐</div>
+    <h1>Admin Panel</h1>
+    <p>InnovateTech Internal Dashboard</p>
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST">
+      <label>Username</label>
+      <input type="text" name="username" placeholder="admin">
+      <label>Password</label>
+      <input type="password" name="password" placeholder="••••••••">
+      <button type="submit">Sign In</button>
+    </form>
+
+    <div class="hint">
+      🔍 Challenge: Find the default credentials!<br>
+      Hint: Check the HTML source code of this page.
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InnovateTech Security Lab</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">🔐</span>
+        <div>
+          <div class="logo-title">InnovateTech</div>
+          <div class="logo-sub">Security Lab</div>
+        </div>
+      </div>
+      <div class="timer-block">
+        <span class="timer-label">Workshop Time</span>
+        <span class="timer" id="timer">04:00:00</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="score-block">
+        <span class="score-label">Score</span>
+        <span class="score-value" id="totalScore">0</span>
+      </div>
+      <div class="score-block">
+        <span class="score-label">Solved</span>
+        <span class="score-value" id="solvedCount">0</span>/<span class="score-value" id="totalCount">50</span>
+      </div>
+      <div class="progress-ring-container" title="Overall progress">
+        <svg class="progress-ring" width="60" height="60">
+          <circle class="progress-ring-bg" cx="30" cy="30" r="24"/>
+          <circle class="progress-ring-fill" id="progressRing" cx="30" cy="30" r="24"
+                  stroke-dasharray="150.8" stroke-dashoffset="150.8"/>
+        </svg>
+        <span class="progress-ring-text" id="progressPct">0%</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- CATEGORY TABS -->
+  <nav class="category-nav">
+    <button class="cat-tab active" data-cat="All">All <span class="cat-count" id="count-All">50</span></button>
+    <button class="cat-tab" data-cat="Network">🌐 Network <span class="cat-count" id="count-Network">10</span></button>
+    <button class="cat-tab" data-cat="Server & Linux">🐧 Server/Linux <span class="cat-count" id="count-Server & Linux">10</span></button>
+    <button class="cat-tab" data-cat="Web Security">🕸️ Web Security <span class="cat-count" id="count-Web Security">15</span></button>
+    <button class="cat-tab" data-cat="Web Advanced">⚡ Web Advanced <span class="cat-count" id="count-Web Advanced">10</span></button>
+    <button class="cat-tab" data-cat="Real World">🌍 Real World <span class="cat-count" id="count-Real World">5</span></button>
+  </nav>
+
+  <!-- LEARNING PATH BANNER -->
+  <div class="learning-path">
+    <div class="path-step active" id="path-Network">
+      <span class="step-num">1</span>
+      <span class="step-name">Network Recon</span>
+    </div>
+    <div class="path-arrow">→</div>
+    <div class="path-step" id="path-Server">
+      <span class="step-num">2</span>
+      <span class="step-name">Server/Linux</span>
+    </div>
+    <div class="path-arrow">→</div>
+    <div class="path-step" id="path-Web">
+      <span class="step-num">3</span>
+      <span class="step-name">Web Basics</span>
+    </div>
+    <div class="path-arrow">→</div>
+    <div class="path-step" id="path-Advanced">
+      <span class="step-num">4</span>
+      <span class="step-name">Web Advanced</span>
+    </div>
+    <div class="path-arrow">→</div>
+    <div class="path-step" id="path-RealWorld">
+      <span class="step-num">5</span>
+      <span class="step-name">Real World</span>
+    </div>
+  </div>
+
+  <!-- CHALLENGE GRID -->
+  <main class="main">
+    <div class="challenge-grid" id="challengeGrid">
+      <div class="loading">Loading challenges...</div>
+    </div>
+  </main>
+
+  <!-- CHALLENGE MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal" id="modal">
+      <button class="modal-close" onclick="closeModalBtn()">✕</button>
+
+      <div class="modal-header">
+        <div class="modal-meta">
+          <span class="modal-category" id="modalCategory"></span>
+          <span class="modal-difficulty" id="modalDifficulty"></span>
+          <span class="modal-points" id="modalPoints"></span>
+        </div>
+        <h2 class="modal-title" id="modalTitle"></h2>
+        <div class="modal-target">
+          <span class="target-label">🎯 Target:</span>
+          <code id="modalTarget"></code>
+        </div>
+        <div class="modal-tools">
+          <span class="target-label">🔧 Tools:</span>
+          <span id="modalTools"></span>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-description" id="modalDescription"></div>
+
+        <!-- HINTS SECTION -->
+        <div class="hints-section">
+          <div class="hints-header">
+            <h3>💡 Hints</h3>
+            <span class="hint-unlock-info" id="hintUnlockInfo"></span>
+          </div>
+          <div class="hints-list" id="hintsList"></div>
+        </div>
+
+        <!-- FLAG SUBMISSION -->
+        <div class="flag-section">
+          <div class="attempt-counter" id="attemptCounter"></div>
+          <div class="flag-input-row">
+            <input
+              type="text"
+              class="flag-input"
+              id="flagInput"
+              placeholder="FLAG{your_flag_here}"
+              onkeydown="if(event.key==='Enter') submitFlag()"
+            />
+            <button class="btn-submit" onclick="submitFlag()">Submit</button>
+          </div>
+          <div class="flag-feedback" id="flagFeedback"></div>
+        </div>
+
+        <!-- SOLUTION SECTION (locked) -->
+        <div class="solution-section" id="solutionSection" style="display:none">
+          <button class="btn-solution" id="solutionBtn" onclick="requestSolution()">
+            🔓 Show Solution (unlock after 6 attempts)
+          </button>
+          <div class="solution-content" id="solutionContent" style="display:none">
+            <h3>📖 Solution</h3>
+            <pre id="solutionText"></pre>
+            <div class="flag-reveal" id="flagReveal"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CELEBRATION OVERLAY -->
+  <div class="celebration" id="celebration" style="display:none">
+    <div class="celebration-content">
+      <div class="celebration-emoji">🎉</div>
+      <h2>Flag Captured!</h2>
+      <p id="celebrationMsg"></p>
+      <button onclick="document.getElementById('celebration').style.display='none'">Continue Hacking</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

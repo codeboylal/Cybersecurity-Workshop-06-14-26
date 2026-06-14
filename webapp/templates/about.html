@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}About Us{% endblock %}
+{% block content %}
+<!-- Challenge #45: Multiple flags/secrets hidden in HTML comments below -->
+<!-- Developer TODO list (REMOVE BEFORE DEPLOY):
+  - FLAG{html_c0mm3nts_4r3_publ1c}
+  - Admin creds: admin / admin123
+  - Remove /backup/ from nginx config
+  - Fix SQLi in search.php
+  - The JWT secret is still 'secret123' in production... oops
+  - Internal API: http://internal-flag:9999/flag
+-->
+<div class="container page">
+  <h1 style="font-size:36px;font-weight:700;margin-bottom:16px">About InnovateTech</h1>
+  <p style="color:var(--text-muted);font-size:18px;max-width:600px;margin-bottom:40px">
+    We're a team of passionate engineers building the future of enterprise software.
+  </p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:40px">
+    <div class="card">
+      <h3 style="margin-bottom:12px">Our Mission</h3>
+      <p style="color:var(--text-muted);line-height:1.7">
+        To make enterprise software accessible, secure, and delightful to use.
+        We believe that great software should empower people, not hinder them.
+      </p>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:12px">Security First</h3>
+      <p style="color:var(--text-muted);line-height:1.7">
+        Security is at the core of everything we build. Our team follows OWASP
+        guidelines and conducts regular penetration testing. <!-- Well, we try to... -->
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

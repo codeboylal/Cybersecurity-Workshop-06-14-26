@@ -1,0 +1,243 @@
+networks:
+  lab-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+
+services:
+  # ─────────────────────────────────────────────
+  #  CTF PLATFORM - Challenge dashboard & scorer
+  # ─────────────────────────────────────────────
+  platform:
+    build: ./platform
+    container_name: ctf-platform
+    ports:
+      - "3000:3000"
+    networks:
+      lab-net:
+        ipv4_address: 172.28.0.2
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  #  MAIN VULNERABLE WEB APP (Flask / Python)
+  # ─────────────────────────────────────────────
+  webapp:
+    build: ./webapp
+    container_name: vuln-webapp
+    networks:
+      lab-net:
+        ipv4_address: 172.28.0.10
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      - FLASK_ENV=development
+      - SECRET_KEY=super_secret_key_dont_tell
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASS=root
+      - DB_NAME=innovatetech
+      - REDIS_HOST=redis
+      - INTERNAL_API=http://internal-flag:9999
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  #  NGINX - Reverse proxy (with misconfigs)
+  # ─────────────────────────────────────────────
+  nginx:
+    build: ./nginx
+    container_name: vuln-nginx
+    ports:
+      - "80:80"
+      - "8080:8080"
+    networks:
+      lab-net:
+        ipv4_address: 172.28.0.3
+    depends_on:
+      - webapp
+      - api
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  #  VULNERABLE REST API (Node.js / JWT / GraphQL)
+  # ─────────────────────────────────────────────
+  api:
+    build: ./api
+    container_name: vuln-api
+    networks:
+      lab-net:
+        ipv4_address: 172.28.0.11
+    environment:
+      - JWT_SECRET=secret123
+      - API_KEY=sk-prod-7f3k9x2mAbCdEf123456
+      - PORT=4000
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  #  INTERNAL FLAG SERVICE (for SSRF challenge)
+  # ─────────────────────────────────────────────
+  internal-flag:
+    build: ./internal-flag
+    container_name: internal-flag-service
+    networks:
+      lab-net:
+        ipv4_address: 172.28.0.50
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  #  ELASTICSEARCH SIMULATOR (port 9200 - no auth)
+  # ─────────────────────────────────────────────
+  elastic-sim:
+    build: ./elastic-sim
+    container_name: elastic-sim
+    networks:
+      lab-net:
+        ipv4_address: 172.28.0.51
+    ports:
+      - "9200:9200"
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  #  MYSQL - Exposed database (weak credentials)
+  # ─────────────────────────────────────────────
+  mysql:
+    image: mysql:5.7
+    container_name: vuln-mysql
+    ports:
+      - "3306:3306"
+    networks:
+      lab-net:
+        ipv4_address: 172.28.0.20
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=innovatetech
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --bind-address=0.0.0.0
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  #  REDIS - No authentication (exposed)
+  # ─────────────────────────────────────────────
+  redis:
+    image: redis:6.2-alpine
+    container_name: vuln-redis
+    ports:
+      - "6379:6379"
+    networks:
+      lab-net:
+        ipv4_address: 172.28.0.21
+    command: redis-server --protected-mode no --bind 0.0.0.0
+    restart: unless-stopped
+
+  # Post-start: seed Redis with flag data
+  redis-seed:
+    image: redis:6.2-alpine
+    container_name: redis-seeder
+    networks:
+      lab-net:
+    depends_on:
+      - redis
+    command: >
+      sh -c "sleep 3 && redis-cli -h redis SET FLAG 'FLAG{r3d1s_n0_p4ssw0rd_m34ns_d4t4_3xp0s3d}' && redis-cli -h redis SET user:1:session 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dXNlcl9pZDoxLHJvbGU6dXNlcg==.secret' && redis-cli -h redis SET admin:password 'Adm1n@InnovateTech2024' && redis-cli -h redis HSET user:cache:1 name 'John Doe' email 'john@innovatetech.com' role 'user' && redis-cli -h redis HSET user:cache:999 name 'Super Admin' email 'admin@innovatetech.com' role 'admin' password 'Adm1n@InnovateTech2024' && echo 'Redis seeded!'"
+    restart: on-failure
+
+  # ─────────────────────────────────────────────
+  #  MONGODB - No authentication (exposed)
+  # ─────────────────────────────────────────────
+  mongodb:
+    image: mongo:5.0
+    container_name: vuln-mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      lab-net:
+        ipv4_address: 172.28.0.22
+    command: mongod --bind_ip_all
+    restart: unless-stopped
+
+  mongo-seed:
+    image: mongo:5.0
+    container_name: mongo-seeder
+    networks:
+      lab-net:
+    depends_on:
+      - mongodb
+    command: >
+      sh -c "sleep 5 && mongosh --host mongodb --eval \"
+        db = db.getSiblingDB('flagsdb');
+        db.flags.insertMany([
+          {challenge: 'MongoDB No Auth', flag: 'FLAG{m0ng0_n04uth_m34ns_d4t4_l34k}', severity: 'CRITICAL'},
+          {challenge: 'Data Exposure', flag: 'FLAG{n0sql_d4t4_3xp0sur3_r34l_w0rld}', severity: 'HIGH'}
+        ]);
+        db = db.getSiblingDB('employees');
+        db.users.insertMany([
+          {name: 'Alice Johnson', email: 'alice@innovatetech.com', salary: 95000, ssn: '123-45-6789', role: 'engineer'},
+          {name: 'Bob Smith', email: 'bob@innovatetech.com', salary: 120000, ssn: '987-65-4321', role: 'manager'},
+          {name: 'Admin User', email: 'admin@innovatetech.com', password: 'p4ssw0rd!', role: 'admin', secret: 'FLAG{m0ng0_d4t4_3xp0s3d_n0_l0g1n}'}
+        ]);
+        print('MongoDB seeded!');
+      \""
+    restart: on-failure
+
+  # ─────────────────────────────────────────────
+  #  FTP SERVER - Anonymous access enabled
+  # ─────────────────────────────────────────────
+  ftp:
+    build: ./ftp
+    container_name: vuln-ftp
+    ports:
+      - "21:21"
+      - "21100-21110:21100-21110"
+    networks:
+      lab-net:
+        ipv4_address: 172.28.0.30
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  #  SSH TARGET - Linux box with priv-esc paths
+  # ─────────────────────────────────────────────
+  ssh-target:
+    build: ./ssh-target
+    container_name: vuln-ssh
+    ports:
+      - "2222:22"
+    networks:
+      lab-net:
+        ipv4_address: 172.28.0.40
+    privileged: true
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  #  DNS SERVER - Zone transfer enabled
+  # ─────────────────────────────────────────────
+  dns:
+    build: ./dns
+    container_name: vuln-dns
+    ports:
+      - "5454:53/udp"
+      - "5454:53/tcp"
+    networks:
+      lab-net:
+        ipv4_address: 172.28.0.60
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  #  BANNER SERVICE - Hidden service on port 8888
+  # ─────────────────────────────────────────────
+  banner-service:
+    image: alpine:3.18
+    container_name: banner-service
+    ports:
+      - "8888:8888"
+    networks:
+      lab-net:
+        ipv4_address: 172.28.0.70
+    command: >
+      sh -c "while true; do
+        echo -e 'InnovateTech Internal Service v1.0\r\nFlag: FLAG{p0rt5_4r3_d00r5_t0_vuln5}\r\nWARNING: Authorized access only\r\n' | nc -l -p 8888;
+      done"
+    restart: unless-stopped

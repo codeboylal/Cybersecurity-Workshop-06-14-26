@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Contact{% endblock %}
+{% block content %}
+<div class="container page" style="max-width:600px">
+  <h1>Contact Us</h1>
+  <p style="color:var(--text-muted);margin-bottom:24px">We'd love to hear from you.</p>
+  <div class="card">
+    <!-- CSRF vulnerable: no token in this form -->
+    <form method="POST" action="/contact">
+      <div class="form-group"><label>Name</label><input type="text" name="name"></div>
+      <div class="form-group"><label>Email</label><input type="email" name="email"></div>
+      <div class="form-group"><label>Message</label><textarea name="message" rows="5"></textarea></div>
+      <button type="submit" class="btn-primary">Send Message</button>
+    </form>
+    <!-- Note: No CSRF token. See /profile/settings for the CSRF challenge -->
+  </div>
+  <div style="margin-top:24px;color:var(--text-muted);font-size:14px">
+    <p>Also try the CSRF challenge: <a href="/profile/settings">Profile Settings</a> has a vulnerable email change form!</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Customer Reviews{% endblock %}
+{% block content %}
+<style>
+  .comments-page { max-width: 800px; margin: 40px auto; padding: 0 32px; }
+  .comments-page h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .page-sub { color: var(--text-muted); margin-bottom: 32px; }
+  .comment-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .comment-author { font-weight: 600; font-size: 15px; }
+  .comment-text { color: var(--text); margin-top: 8px; font-size: 14px; line-height: 1.6; }
+  .comment-ts { color: var(--text-muted); font-size: 12px; margin-top: 8px; }
+  .comment-form { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-top: 32px; }
+  .comment-form h3 { margin-bottom: 20px; font-size: 18px; }
+  .submit-btn { padding: 10px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+  .xss-hint { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px; font-size: 12px; color: #78350f; margin-bottom: 16px; }
+</style>
+
+<div class="comments-page">
+  <h1>Customer Reviews ⭐</h1>
+  <div class="page-sub">See what our customers are saying. Share your experience!</div>
+
+  <!-- Note: Comments are stored and rendered WITHOUT sanitization (Stored XSS) -->
+
+  {% for comment in comments %}
+  <div class="comment-card">
+    <div class="comment-author">{{ comment.author | safe }} ⭐⭐⭐⭐⭐</div>
+    <!-- Stored XSS: comment text rendered without sanitization -->
+    <div class="comment-text">{{ comment.text | safe }}</div>
+    <div class="comment-ts">Posted {{ comment.ts }}</div>
+  </div>
+  {% endfor %}
+
+  <div class="comment-form">
+    <h3>Leave a Review</h3>
+    <div class="xss-hint">
+      🔍 <b>Lab Hint:</b> Try posting: <code>&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code> as your review text.
+      This demonstrates Stored XSS — your script will execute for every visitor!
+    </div>
+    <form method="POST">
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" name="author" placeholder="Enter your name">
+      </div>
+      <div class="form-group">
+        <label>Your Review</label>
+        <textarea name="text" rows="4" placeholder="Share your experience..."></textarea>
+      </div>
+      <button type="submit" class="submit-btn">Post Review</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

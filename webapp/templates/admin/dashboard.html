@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - InnovateTech</title>
+  <style>
+    body { margin:0; font-family:'Inter',sans-serif; background:#0f172a; color:#e2e8f0; }
+    .sidebar { width:240px; background:#1e293b; border-right:1px solid #334155; min-height:100vh; position:fixed; padding:24px 0; }
+    .sidebar-logo { padding:0 20px 24px; border-bottom:1px solid #334155; margin-bottom:16px; }
+    .sidebar-logo h2 { color:white; font-size:16px; }
+    .sidebar-logo p { color:#64748b; font-size:12px; }
+    .sidebar-link { display:block; padding:10px 20px; color:#94a3b8; text-decoration:none; font-size:14px; transition:all 0.15s; }
+    .sidebar-link:hover { background:#0f172a; color:white; }
+    .main { margin-left:240px; padding:32px; }
+    .welcome { background:linear-gradient(135deg,#1e3a8a,#5b21b6); border-radius:16px; padding:32px; margin-bottom:32px; }
+    .welcome h1 { font-size:28px; font-weight:700; margin-bottom:8px; color:white; }
+    .welcome p { color:rgba(255,255,255,0.8); }
+    .flag-card { background:#0d1f0d; border:2px solid #16a34a; border-radius:12px; padding:24px; margin-bottom:32px; }
+    .flag-card h3 { color:#22c55e; margin-bottom:8px; }
+    .flag-value { font-family:monospace; font-size:18px; color:#4ade80; background:#0a1a0a; padding:12px 16px; border-radius:8px; margin-top:12px; word-break:break-all; }
+    .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px; }
+    .stat-card { background:#1e293b; border:1px solid #334155; border-radius:12px; padding:20px; }
+    .stat-num { font-size:32px; font-weight:700; color:#60a5fa; }
+    .stat-label { color:#64748b; font-size:13px; margin-top:4px; }
+    .table-card { background:#1e293b; border:1px solid #334155; border-radius:12px; padding:24px; }
+    table { width:100%; border-collapse:collapse; }
+    th { text-align:left; color:#64748b; font-size:12px; font-weight:600; text-transform:uppercase; padding:8px 0; border-bottom:1px solid #334155; }
+    td { padding:12px 0; border-bottom:1px solid #1e293b; font-size:14px; color:#e2e8f0; }
+    .badge { padding:3px 8px; border-radius:4px; font-size:11px; font-weight:600; }
+    .badge-admin { background:#451a03; color:#fb923c; }
+    .badge-user { background:#1e3a5f; color:#60a5fa; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🔐 Admin Panel</h2>
+      <p>InnovateTech v2.1.0</p>
+    </div>
+    <a href="/admin/dashboard" class="sidebar-link">📊 Dashboard</a>
+    <a href="/api/users/999" class="sidebar-link">👥 Users</a>
+    <a href="/backup/" class="sidebar-link">💾 Backups</a>
+    <a href="/api/admin/config" class="sidebar-link">⚙️ Config (try PUT)</a>
+    <a href="/" class="sidebar-link">🌐 Public Site</a>
+    <a href="/logout" class="sidebar-link">🚪 Logout</a>
+  </div>
+
+  <div class="main">
+    <div class="welcome">
+      <h1>Welcome, Administrator! 👑</h1>
+      <p>You have successfully logged in with default credentials. In a real scenario, this would be game over.</p>
+    </div>
+
+    <div class="flag-card">
+      <h3>🎉 Challenge #23 Complete!</h3>
+      <p style="color:#86efac;font-size:14px">You bypassed authentication using default credentials (admin/admin123)</p>
+      <div class="flag-value">{{ flag }}</div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num">1,247</div><div class="stat-label">Total Users</div></div>
+      <div class="stat-card"><div class="stat-num">$2.4M</div><div class="stat-label">Revenue (Jan)</div></div>
+      <div class="stat-card"><div class="stat-num">99.98%</div><div class="stat-label">Uptime</div></div>
+      <div class="stat-card"><div class="stat-num">47</div><div class="stat-label">Active Sessions</div></div>
+    </div>
+
+    <div class="table-card">
+      <h3 style="margin-bottom:20px;font-size:16px">Recent Users</h3>
+      <table>
+        <tr><th>Name</th><th>Email</th><th>Role</th><th>Last Login</th></tr>
+        <tr><td>John Doe</td><td>john@example.com</td><td><span class="badge badge-user">user</span></td><td>2 hours ago</td></tr>
+        <tr><td>Jane Smith</td><td>jane@example.com</td><td><span class="badge badge-user">user</span></td><td>5 hours ago</td></tr>
+        <tr><td>Bob Dev</td><td>bob@innovatetech.com</td><td><span class="badge badge-user">developer</span></td><td>1 day ago</td></tr>
+        <tr><td>Super Admin</td><td>admin@innovatetech.com</td><td><span class="badge badge-admin">admin</span></td><td>Now</td></tr>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

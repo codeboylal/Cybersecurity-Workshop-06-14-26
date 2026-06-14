@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}User Profile{% endblock %}
+{% block content %}
+<style>
+  .profile-page { max-width: 700px; margin: 40px auto; padding: 0 32px; }
+  .profile-card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 32px; }
+  .profile-avatar { width: 80px; height: 80px; background: linear-gradient(135deg, #3b82f6, #7c3aed); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 16px; }
+  .profile-name { font-size: 24px; font-weight: 700; }
+  .profile-role { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 4px; }
+  .role-admin { background: #fef3c7; color: #92400e; }
+  .role-user { background: #eff6ff; color: #1e40af; }
+  .role-developer { background: #f0fdf4; color: #065f46; }
+  .profile-fields { margin-top: 24px; border-top: 1px solid var(--border); padding-top: 24px; }
+  .field-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .field-label { color: var(--text-muted); font-weight: 500; }
+  .field-value { font-weight: 500; color: var(--text); }
+  .idor-nav { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; }
+  .idor-link { padding: 8px 16px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; color: var(--text); font-size: 13px; transition: all 0.15s; }
+  .idor-link:hover { background: var(--bg); border-color: var(--primary); }
+  .idor-link.current { background: #eff6ff; border-color: var(--primary); color: var(--primary); }
+</style>
+
+<div class="profile-page">
+  <div class="profile-card">
+    <div class="profile-avatar">
+      {% if user.role == 'admin' %}👑{% elif user.role == 'developer' %}💻{% else %}👤{% endif %}
+    </div>
+    <div class="profile-name">{{ user.name }}</div>
+    <span class="profile-role role-{{ user.role }}">{{ user.role | upper }}</span>
+
+    {% if user.secret %}
+    <div class="alert alert-success" style="margin-top:16px">
+      🎉 IDOR Successful! You accessed a privileged user's data!
+    </div>
+    <div class="flag-box">{{ user.secret }}</div>
+    {% endif %}
+
+    <div class="profile-fields">
+      {% for key, val in user.items() %}
+        {% if key not in ['id'] %}
+        <div class="field-row">
+          <span class="field-label">{{ key | title }}</span>
+          <span class="field-value">{{ val }}</span>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- IDOR navigation - shows how easy it is to enumerate IDs -->
+    <div class="idor-nav">
+      <span style="font-size:13px;color:var(--text-muted);align-self:center">Browse users:</span>
+      {% for i in [1, 2, 3, 999] %}
+      <a href="/profile/{{ i }}" class="idor-link {% if user.id == i %}current{% endif %}">
+        User #{{ i }}{% if i == 999 %} (Admin?){% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

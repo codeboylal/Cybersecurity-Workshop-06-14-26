@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="container page">
+  <h1>Welcome, {{ username }}! 👋</h1>
+  <p style="color:var(--text-muted);margin:8px 0 32px">Your InnovateTech dashboard</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:32px">
+    <a href="/profile/1" class="card" style="text-decoration:none;display:block">
+      <div style="font-size:32px;margin-bottom:8px">👤</div>
+      <div style="font-weight:600">My Profile</div>
+      <div style="color:var(--text-muted);font-size:13px">View profile — try changing the ID!</div>
+    </a>
+    <a href="/tools/ping" class="card" style="text-decoration:none;display:block">
+      <div style="font-size:32px;margin-bottom:8px">🛠️</div>
+      <div style="font-weight:600">Network Tools</div>
+      <div style="color:var(--text-muted);font-size:13px">Ping & diagnostics</div>
+    </a>
+    <a href="/tools/upload" class="card" style="text-decoration:none;display:block">
+      <div style="font-size:32px;margin-bottom:8px">📁</div>
+      <div style="font-weight:600">File Upload</div>
+      <div style="color:var(--text-muted);font-size:13px">Upload documents & images</div>
+    </a>
+    <a href="/download?file=welcome.txt" class="card" style="text-decoration:none;display:block">
+      <div style="font-size:32px;margin-bottom:8px">📥</div>
+      <div style="font-weight:600">Download Files</div>
+      <div style="color:var(--text-muted);font-size:13px">Try path traversal!</div>
+    </a>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:16px">Lab Targets from here:</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      {% for name, url in [('Search (XSS/SQLi)','/search'),('Comments (Stored XSS)','/comments'),('Ping Tool (CMDi)','/tools/ping'),('File Upload (RCE)','/tools/upload'),('Profile (IDOR)','/profile/1'),('Download (Path Traversal)','/download?file=welcome.txt'),('Include (LFI)','/page?template=home'),('Admin Panel','/admin'),('API Users','/api/users/1'),('SSRF Test','/api/fetch?url=http://localhost/robots.txt')] %}
+      <a href="{{ url }}" style="padding:6px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;text-decoration:none;color:#1e40af;font-size:13px">{{ name }}</a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

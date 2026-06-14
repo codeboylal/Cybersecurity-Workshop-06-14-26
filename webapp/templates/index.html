@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}InnovateTech - Innovation at Scale{% endblock %}
+{% block content %}
+<style>
+  .hero { background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%); color: white; padding: 80px 32px; text-align: center; }
+  .hero h1 { font-size: 48px; font-weight: 700; margin-bottom: 16px; }
+  .hero p { font-size: 20px; opacity: 0.9; max-width: 600px; margin: 0 auto 32px; }
+  .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-white { padding: 12px 28px; background: white; color: #1e3a8a; border-radius: 8px; font-weight: 600; text-decoration: none; }
+  .btn-outline { padding: 12px 28px; border: 2px solid rgba(255,255,255,0.5); color: white; border-radius: 8px; font-weight: 600; text-decoration: none; }
+
+  .features { padding: 80px 32px; background: white; }
+  .features h2 { text-align: center; font-size: 36px; margin-bottom: 48px; }
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; max-width: 1100px; margin: 0 auto; }
+  .feature-card { padding: 28px; border: 1px solid var(--border); border-radius: 12px; }
+  .feature-icon { font-size: 36px; margin-bottom: 12px; }
+  .feature-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+  .feature-desc { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+
+  .stats { background: #0f172a; color: white; padding: 60px 32px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: 800px; margin: 0 auto; text-align: center; }
+  .stat-num { font-size: 42px; font-weight: 700; color: #60a5fa; }
+  .stat-label { color: rgba(255,255,255,0.6); font-size: 14px; margin-top: 4px; }
+</style>
+
+<div class="hero">
+  <h1>Innovation at Scale 🚀</h1>
+  <p>InnovateTech delivers cutting-edge software solutions for enterprises worldwide. Fast. Secure. Reliable.</p>
+  <div class="hero-btns">
+    <a href="/search" class="btn-white">Explore Products</a>
+    <a href="/register" class="btn-outline">Get Started Free</a>
+  </div>
+</div>
+
+<div class="features">
+  <div class="container">
+    <h2>Why Choose InnovateTech?</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Blazing Fast</div>
+        <div class="feature-desc">Our systems handle millions of requests per second with 99.99% uptime guarantee.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-title">Enterprise Security</div>
+        <div class="feature-desc">Bank-grade encryption and security. Your data is safe with us.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌍</div>
+        <div class="feature-title">Global Scale</div>
+        <div class="feature-desc">Deployed across 50+ data centers worldwide for lowest latency.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <div class="feature-title">AI-Powered</div>
+        <div class="feature-desc">Machine learning models optimize your workflows automatically.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stats-grid">
+    <div><div class="stat-num">50K+</div><div class="stat-label">Customers</div></div>
+    <div><div class="stat-num">99.99%</div><div class="stat-label">Uptime</div></div>
+    <div><div class="stat-num">1.2B</div><div class="stat-label">API Calls/Day</div></div>
+    <div><div class="stat-num">150+</div><div class="stat-label">Countries</div></div>
+  </div>
+</div>
+{% endblock %}

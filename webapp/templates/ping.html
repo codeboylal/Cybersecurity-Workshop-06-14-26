@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Network Tools{% endblock %}
+{% block content %}
+<style>
+  .tools-page { max-width: 700px; margin: 40px auto; padding: 0 32px; }
+  .tools-page h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .tool-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .tool-form { display: flex; gap: 8px; }
+  .tool-input { flex: 1; }
+  .tool-btn { padding: 10px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+  .output-box { background: #0f172a; color: #a3e635; padding: 16px; border-radius: 8px; font-family: monospace; font-size: 13px; margin-top: 16px; white-space: pre-wrap; min-height: 80px; }
+  .vuln-hint { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px; font-size: 12px; color: #78350f; margin-bottom: 16px; }
+</style>
+
+<div class="tools-page">
+  <h1>🛠️ Network Tools</h1>
+  <p style="color:var(--text-muted);margin-bottom:24px">Utility tools for network diagnostics</p>
+
+  <div class="tool-card">
+    <h3 style="margin-bottom:16px">Ping Tool</h3>
+    <div class="vuln-hint">
+      🔍 <b>Lab Exercise:</b> Try injecting commands after the IP address.<br>
+      Example: <code>8.8.8.8; id</code> or <code>8.8.8.8; cat /flag.txt</code>
+    </div>
+
+    <form method="POST">
+      <div class="tool-form">
+        <input class="tool-input" type="text" name="ip"
+               value="{{ request.form.get('ip', '8.8.8.8') }}"
+               placeholder="Enter IP address (e.g. 8.8.8.8)">
+        <button class="tool-btn" type="submit">Run Ping</button>
+      </div>
+    </form>
+
+    {% if output %}
+    <div class="output-box">{{ output }}</div>
+    {% endif %}
+  </div>
+
+  <div class="tool-card">
+    <h3 style="margin-bottom:8px">DNS Lookup</h3>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px">
+      Coming soon... (try command injection on the ping tool above first!)
+    </p>
+  </div>
+</div>
+{% endblock %}

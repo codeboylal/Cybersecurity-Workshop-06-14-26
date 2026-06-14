@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Clickjacking Demo{% endblock %}
+{% block content %}
+<style>
+  .cj-demo { max-width: 900px; margin: 40px auto; padding: 0 32px; }
+  .demo-box { position: relative; border: 2px solid var(--border); border-radius: 12px; overflow: hidden; height: 500px; margin: 24px 0; }
+  .decoy-layer { position: absolute; inset: 0; background: linear-gradient(135deg, #1e3a8a, #5b21b6); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 1; }
+  .iframe-layer { position: absolute; inset: 0; opacity: 0.01; z-index: 2; }
+  .iframe-layer iframe { width: 100%; height: 100%; border: none; }
+  .show-iframe-btn { padding: 8px 20px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .flag-section { background: #0d1f0d; border: 2px solid #16a34a; border-radius: 12px; padding: 24px; }
+</style>
+
+<div class="cj-demo">
+  <h1>Clickjacking Demo 🎭</h1>
+  <p style="color:var(--text-muted);margin-bottom:24px">
+    Clickjacking overlays an invisible iframe over visible content. The victim thinks they're clicking on the visible site, but they're actually clicking on the invisible iframe!
+  </p>
+
+  <div class="demo-box" id="demoBox">
+    <!-- Visible decoy layer -->
+    <div class="decoy-layer">
+      <div style="font-size:48px;margin-bottom:16px">🎁</div>
+      <h2 style="margin-bottom:8px">Click HERE to claim your prize!</h2>
+      <p style="opacity:0.8;margin-bottom:24px">You've been selected for a special offer!</p>
+      <button onclick="demoClick()" style="padding:16px 40px;background:white;color:#1e3a8a;border:none;border-radius:8px;font-size:18px;font-weight:700;cursor:pointer;">
+        🎉 CLAIM NOW!
+      </button>
+    </div>
+    <!-- Invisible iframe layer (the actual InnovateTech site) -->
+    <div class="iframe-layer" id="iframeLayer">
+      <iframe src="/profile/settings"></iframe>
+    </div>
+  </div>
+
+  <button class="show-iframe-btn" onclick="revealIframe()">🔍 Reveal Hidden Layer (Demo Mode)</button>
+
+  <div style="margin-top:24px">
+    <h3>How it works:</h3>
+    <ol style="padding-left:20px;line-height:2;color:var(--text-muted);font-size:14px">
+      <li>Attacker creates a page with attractive content (prize claim)</li>
+      <li>Loads the victim's banking/email site in an invisible iframe on top</li>
+      <li>Positions the iframe so "confirm payment" button aligns with "CLAIM NOW"</li>
+      <li>Victim clicks "CLAIM NOW" but actually clicks bank's confirm button!</li>
+    </ol>
+  </div>
+
+  <div class="flag-section" style="margin-top:24px">
+    <h3 style="color:#22c55e;margin-bottom:8px">🎉 Clickjacking Demo Complete!</h3>
+    <p style="color:#86efac;font-size:14px;margin-bottom:12px">
+      This site has no X-Frame-Options header — it CAN be loaded in an iframe anywhere!
+    </p>
+    <div style="font-family:monospace;font-size:16px;color:#4ade80;">
+      FLAG{cl1ckj4ck1ng_1nv1s1bl3_1fr4m3}
+    </div>
+    <p style="color:#86efac;font-size:12px;margin-top:12px">
+      Fix: Add header <code style="background:#0a1a0a;padding:2px 6px;border-radius:4px;">X-Frame-Options: SAMEORIGIN</code> to all responses.
+    </p>
+  </div>
+</div>
+
+<script>
+function revealIframe() {
+  document.getElementById('iframeLayer').style.opacity = '0.5';
+  document.getElementById('iframeLayer').style.border = '3px solid red';
+}
+function demoClick() {
+  alert('You clicked the "CLAIM NOW" button!\nIn a real attack, you would have actually clicked on:\n/profile/settings (change email form)\n\nThis is Clickjacking!');
+}
+</script>
+{% endblock %}

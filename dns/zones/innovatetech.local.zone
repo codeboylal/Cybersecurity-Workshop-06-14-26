@@ -1,0 +1,51 @@
+; InnovateTech DNS Zone File
+; Zone Transfer Vulnerability Demo (Challenge #4)
+
+$ORIGIN innovatetech.local.
+$TTL 3600
+
+; SOA Record
+@       IN  SOA     ns1.innovatetech.local. admin.innovatetech.local. (
+                    2024012001  ; Serial
+                    3600        ; Refresh
+                    1800        ; Retry
+                    604800      ; Expire
+                    86400 )     ; Minimum TTL
+
+; Nameservers
+@           IN  NS  ns1.innovatetech.local.
+@           IN  NS  ns2.innovatetech.local.
+
+; A Records - reveals internal infrastructure!
+@               IN  A   172.20.0.10
+ns1             IN  A   172.20.0.60
+ns2             IN  A   172.20.0.61
+www             IN  A   172.20.0.3
+api             IN  A   172.20.0.11
+admin           IN  A   172.20.0.3
+dev             IN  A   172.20.0.100
+staging         IN  A   172.20.0.101
+db              IN  A   172.20.0.20
+redis           IN  A   172.20.0.21
+internal        IN  A   172.20.0.50
+vpn             IN  A   172.20.0.200
+mail            IN  A   172.20.0.80
+backup          IN  A   172.20.0.90
+monitoring      IN  A   172.20.0.95
+
+; CNAME Records
+ftp             IN  CNAME   www.innovatetech.local.
+files           IN  CNAME   backup.innovatetech.local.
+
+; MX Records
+@               IN  MX 10 mail.innovatetech.local.
+
+; TXT Records - flag and sensitive info!
+@               IN  TXT "v=spf1 ip4:172.20.0.0/24 ~all"
+flag            IN  TXT "FLAG{axfr_dump5_4ll_dns_r3c0rd5}"
+secrets         IN  TXT "db_pass=root jwt_secret=secret123 api_key=sk-prod-7f3k9x2mAbCdEf123456"
+internal-note   IN  TXT "TODO: remove these TXT records before going live"
+
+; SRV Records
+_ssh._tcp       IN  SRV 0 5 2222 ssh-target.innovatetech.local.
+_ftp._tcp       IN  SRV 0 5 21   ftp.innovatetech.local.
